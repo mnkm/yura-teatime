@@ -29,6 +29,15 @@ const regionClasses = {
   '九州地方': 'kyushu'
 };
 
+// 突出部を除いた主領域の中央に合わせるための垂直方向だけのラベル補正値。
+const labelVerticalOffsets = {
+  '01': -12,
+  '13': -10,
+  '15': 23,
+  '18': 23,
+  '26': 23
+};
+
 const mapContainer = document.querySelector('#map');
 const selectedHeading = document.querySelector('#selected-heading');
 const selectedVideo = document.querySelector('#selected-video');
@@ -314,10 +323,11 @@ async function loadMap() {
     prefecture.setAttribute('tabindex', '0');
 
     const bounds = prefecture.getBBox();
+    const verticalOffset = labelVerticalOffsets[code] || 0;
     const label = document.createElementNS(svgNamespace, 'text');
     label.setAttribute('class', 'prefecture-label');
     label.setAttribute('x', bounds.x + bounds.width / 2);
-    label.setAttribute('y', bounds.y + bounds.height / 2);
+    label.setAttribute('y', bounds.y + bounds.height / 2 + verticalOffset);
     label.textContent = displayName;
     label.setAttribute('aria-hidden', 'true');
     prefecture.appendChild(label);

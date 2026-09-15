@@ -133,10 +133,14 @@ h1 {
 
 /* スプレッドシートにデータがない都道府県の明るい灰色。 */
 .geolonia-svg-map .prefecture.no-data,
-.geolonia-svg-map .prefecture.no-data:hover,
-.geolonia-svg-map .prefecture.no-data:focus-visible,
 .geolonia-svg-map .prefecture.no-data.is-selected {
   fill: #d7dce2 !important;
+}
+
+/* データがない都道府県も、ホバー時は操作対象として色を変える。 */
+.geolonia-svg-map .prefecture.no-data:hover,
+.geolonia-svg-map .prefecture.no-data:focus-visible {
+  fill: #dfeaf8 !important;
 }
 
 /* マウスオーバー・キーボードフォーカス時の地図色。 */
