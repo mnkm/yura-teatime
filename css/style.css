@@ -1,0 +1,291 @@
+:root {
+  --page-bg: #edf4ff;
+  --panel-bg: rgba(223, 234, 246, 0.9);
+  --panel-border: rgba(255, 255, 255, 0.75);
+  --text: #1a2540;
+  --muted: #5f708d;
+  --selected: #d7e7ff;
+  --selected-stroke: #a8c5ee;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 18px 60px;
+}
+
+.topbar {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.data-list li.ranked-item {
+  align-items: center;
+  background: #d7e7f7;
+}
+
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 3rem);
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #d7e7f7;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(240px, 0.9fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.map-panel,
+.info-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 22px;
+  box-shadow: 0 14px 30px rgba(110, 136, 192, 0.08);
+}
+
+.map-panel {
+  padding: 18px;
+  min-height: 720px;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  min-height: 680px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.geolonia-svg-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.geolonia-svg-map .prefecture {
+  fill: #e8f1fb;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1.5;
+  outline: none;
+  cursor: pointer;
+  transition: fill 0.18s ease, stroke 0.18s ease;
+}
+
+.geolonia-svg-map .prefecture.region-hokkaido { fill: #b9dcf5; }
+.geolonia-svg-map .prefecture.region-tohoku { fill: #f3c59c; }
+.geolonia-svg-map .prefecture.region-kanto { fill: #f4edb8; }
+.geolonia-svg-map .prefecture.region-chubu { fill: #d9edc8; }
+.geolonia-svg-map .prefecture.region-kinki { fill: #c7e7df; }
+.geolonia-svg-map .prefecture.region-chugoku { fill: #c8ddf2; }
+.geolonia-svg-map .prefecture.region-shikoku { fill: #d9d2f0; }
+.geolonia-svg-map .prefecture.region-kyushu { fill: #ecd3e8; }
+
+.geolonia-svg-map .prefecture.no-data,
+.geolonia-svg-map .prefecture.no-data:hover,
+.geolonia-svg-map .prefecture.no-data:focus-visible,
+.geolonia-svg-map .prefecture.no-data.is-selected {
+  fill: #d7dce2 !important;
+}
+
+.geolonia-svg-map .prefecture:hover,
+.geolonia-svg-map .prefecture:focus-visible {
+  fill: #dfeaf8;
+}
+
+.geolonia-svg-map .prefecture.is-selected {
+  fill: var(--selected) !important;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1.5;
+}
+
+.geolonia-svg-map .prefecture-label {
+  fill: #24344d;
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  pointer-events: none;
+  user-select: none;
+}
+
+.info-panel {
+  padding: 20px 18px;
+}
+
+.info-panel h2 {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+}
+
+.selected-box {
+  background: rgba(220, 232, 247, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 18px 16px;
+}
+
+.selected-video {
+  display: none;
+  margin: 0;
+}
+
+.selected-video.is-visible {
+  display: block;
+}
+
+.video-date,
+.video-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.5;
+    word-wrap: break-word; /* Added to ensure long URLs wrap correctly */
+}
+
+.selected-video.is-visible {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.video-frame {
+  overflow: hidden;
+  border-radius: 10px;
+  aspect-ratio: 16 / 9;
+  background: #cbd2dc;
+}
+
+.video-title a {
+  color: #35679b;
+}
+
+.selected-video iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-status {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  margin: 0;
+  color: #647080;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.selected-details {
+  margin-top: 16px;
+  color: var(--text);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.data-section {
+  margin-top: 12px;
+}
+
+.data-section h3 {
+  margin: 0 0 5px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.data-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.data-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(103, 130, 185, 0.06);
+}
+
+.data-list li.ranked-item {
+  align-items: stretch;
+  background: transparent;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.card-rank {
+  flex: 0 0 2rem;
+  color: var(--muted);
+  font-weight: 800;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #d7e7f7;
+  border-radius: 7px 0 0 7px;
+}
+
+.card-content {
+  flex: 1 1 auto;
+  background: rgb(246, 249, 253);
+  min-width: 0;
+  padding: 9px 10px;
+  overflow-wrap: anywhere;
+}
+
+.shop-line {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.data-list a {
+  color: #35679b;
+}
+
+.data-status {
+  margin: 0;
+  color: var(--muted);
+}
+

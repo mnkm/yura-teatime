@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ゆらのゆるっとゆらっとTeaTime</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <p class="eyebrow">47都道府県をもぐもぐ！</p>
+        <h1>ゆらのゆるっとゆらっとTeaTime</h1>
+      </header>
+
+      <main class="content">
+        <section class="map-panel" aria-label="日本地図">
+          <div id="map"></div>
+        </section>
+
+        <aside class="info-panel" aria-live="polite">
+          <h2 id="selected-heading">東京都</h2>
+          <div class="selected-box">
+            <div id="selected-video" class="selected-video" aria-label="都道府県紹介動画"></div>
+          </div>
+          <div id="selected-details" class="selected-details" aria-live="polite">
+            <p class="data-status">情報を読み込んでいます。</p>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="js/script.js"></script>
+  </body>
+</html>
