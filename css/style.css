@@ -74,9 +74,26 @@ h1 {
 /* 地図パネルと情報パネルを横並びにするメインレイアウト。 */
 .content {
   display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
+  grid-template-columns: minmax(320px, 6fr) minmax(280px, 4fr);
   gap: 22px;
   align-items: stretch;
+}
+
+/* 2つのパネルの最小幅を同時に確保できない画面では縦積みにする。 */
+@media (max-width: 660px) {
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .info-panel {
+    height: auto;
+    min-height: 460px;
+  }
+
+  .info-panel .selected-details {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
 }
 
 /* 地図・情報パネルに共通するカード外観。 */
@@ -376,5 +393,18 @@ h1 {
 .data-status {
   margin: 0;
   color: var(--muted);
+}
+
+/* 狭い画面で縦積みになった右パネルは、ランキング全体を展開表示する。 */
+@media (max-width: 660px) {
+  .info-panel {
+    height: auto;
+    min-height: 460px;
+  }
+
+  .info-panel .selected-details {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
 }
 
