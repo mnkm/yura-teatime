@@ -79,10 +79,19 @@ function youtubeEmbedUrl(url) {
     const watchId = parsedUrl.searchParams.get('v');
     const shortMatch = parsedUrl.hostname === 'youtu.be' ? parsedUrl.pathname.match(/^\/([^/]+)/) : null;
     const videoId = liveMatch?.[1] || watchId || shortMatch?.[1];
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0` : '';
   } catch {
     return '';
   }
+}
+
+// YouTube動画IDから、プレイヤー読み込み失敗時に使うサムネイルURLを作成する。
+function youtubeThumbnailUrl(url) {
+  const embedUrl = youtubeEmbedUrl(url);
+  if (!embedUrl) return '';
+
+  const videoId = embedUrl.split('/embed/')[1]?.split('?')[0];
+  return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '';
 }
 
 // 見出し行から配信日と「#」以降の動画タイトルを分離する。
@@ -112,6 +121,10 @@ function renderSelectedVideo(data) {
   const videoFrame = document.createElement('div');
   videoFrame.className = 'video-frame';
   const embedUrl = youtubeEmbedUrl(data?.videoUrl);
+  const thumbnailUrl = youtubeThumbnailUrl(data?.videoUrl);
+  if (thumbnailUrl) {
+    videoFrame.style.backgroundImage = `url("${thumbnailUrl}")`;
+  }
   if (!embedUrl) {
     const status = document.createElement('p');
     status.className = 'video-status';
@@ -121,7 +134,8 @@ function renderSelectedVideo(data) {
     const iframe = document.createElement('iframe');
     iframe.src = embedUrl;
     iframe.title = '都道府県紹介動画';
-    iframe.loading = 'lazy';
+    iframe.loading = 'eager';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
     iframe.allowFullscreen = true;
     videoFrame.appendChild(iframe);
