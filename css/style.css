@@ -24,7 +24,31 @@ body {
 .page {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 30px 18px 60px;
+  padding: 30px 18px 88px;
+}
+
+/* 画面下部に固定表示する出典・ライセンス情報。 */
+.license-notice {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  padding: 8px 18px;
+  background: rgba(237, 244, 255, 0.94);
+  border-top: 1px solid var(--panel-border);
+  color: var(--muted);
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.license-notice small {
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.license-notice a {
+  color: #35679b;
 }
 
 /* ページ上部のキャッチコピーとタイトル。 */
