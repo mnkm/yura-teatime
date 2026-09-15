@@ -1,4 +1,5 @@
 :root {
+  /* ページ全体と各パネルで共有する配色。 */
   --page-bg: #edf4ff;
   --panel-bg: rgba(223, 234, 246, 0.9);
   --panel-border: rgba(255, 255, 255, 0.75);
@@ -12,6 +13,7 @@
   box-sizing: border-box;
 }
 
+/* ページ全体の基本レイアウトと文字色。 */
 body {
   margin: 0;
   font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
@@ -25,6 +27,7 @@ body {
   padding: 30px 18px 60px;
 }
 
+/* ページ上部のキャッチコピーとタイトル。 */
 .topbar {
   text-align: center;
   margin-bottom: 20px;
@@ -38,22 +41,13 @@ body {
   color: var(--muted);
   text-transform: uppercase;
 }
-.data-list li.ranked-item {
-  align-items: center;
-  background: #d7e7f7;
-}
-
 
 h1 {
   margin: 0;
   font-size: clamp(2rem, 3vw, 3rem);
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #d7e7f7;
 }
 
+/* 地図パネルと情報パネルを横並びにするメインレイアウト。 */
 .content {
   display: grid;
   grid-template-columns: minmax(0, 2.1fr) minmax(240px, 0.9fr);
@@ -61,6 +55,7 @@ h1 {
   align-items: stretch;
 }
 
+/* 地図・情報パネルに共通するカード外観。 */
 .map-panel,
 .info-panel {
   background: var(--panel-bg);
@@ -69,11 +64,13 @@ h1 {
   box-shadow: 0 14px 30px rgba(110, 136, 192, 0.08);
 }
 
+/* 日本地図を表示する左側パネル。 */
 .map-panel {
   padding: 18px;
   min-height: 720px;
 }
 
+/* SVG地図の表示領域。 */
 #map {
   width: 100%;
   height: 100%;
@@ -83,12 +80,14 @@ h1 {
   justify-content: center;
 }
 
+/* GeoloniaのSVG地図本体。 */
 .geolonia-svg-map {
   width: 100%;
   height: auto;
   display: block;
 }
 
+/* 各都道府県の基本色、境界線、クリック可能状態。 */
 .geolonia-svg-map .prefecture {
   fill: #e8f1fb;
   stroke: rgba(255, 255, 255, 0.9);
@@ -98,6 +97,7 @@ h1 {
   transition: fill 0.18s ease, stroke 0.18s ease;
 }
 
+/* 地方ごとの都道府県カラー。 */
 .geolonia-svg-map .prefecture.region-hokkaido { fill: #b9dcf5; }
 .geolonia-svg-map .prefecture.region-tohoku { fill: #f3c59c; }
 .geolonia-svg-map .prefecture.region-kanto { fill: #f4edb8; }
@@ -107,6 +107,7 @@ h1 {
 .geolonia-svg-map .prefecture.region-shikoku { fill: #d9d2f0; }
 .geolonia-svg-map .prefecture.region-kyushu { fill: #ecd3e8; }
 
+/* スプレッドシートにデータがない都道府県の明るい灰色。 */
 .geolonia-svg-map .prefecture.no-data,
 .geolonia-svg-map .prefecture.no-data:hover,
 .geolonia-svg-map .prefecture.no-data:focus-visible,
@@ -114,17 +115,20 @@ h1 {
   fill: #d7dce2 !important;
 }
 
+/* マウスオーバー・キーボードフォーカス時の地図色。 */
 .geolonia-svg-map .prefecture:hover,
 .geolonia-svg-map .prefecture:focus-visible {
   fill: #dfeaf8;
 }
 
+/* 選択中の都道府県の強調表示。 */
 .geolonia-svg-map .prefecture.is-selected {
   fill: var(--selected) !important;
   stroke: rgba(255, 255, 255, 0.9);
   stroke-width: 1.5;
 }
 
+/* SVG上に重ねる都道府県名ラベル。 */
 .geolonia-svg-map .prefecture-label {
   fill: #24344d;
   font-size: 10px;
@@ -139,15 +143,18 @@ h1 {
   user-select: none;
 }
 
+/* 選択情報を表示する右側パネル。 */
 .info-panel {
   padding: 20px 18px;
 }
 
+/* 選択中の都道府県名。 */
 .info-panel h2 {
   margin: 0 0 16px;
   font-size: 1.15rem;
 }
 
+/* 動画と詳細情報を囲む情報ボックス。 */
 .selected-box {
   background: rgba(220, 232, 247, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -155,6 +162,7 @@ h1 {
   padding: 18px 16px;
 }
 
+/* 配信動画、配信日、動画タイトルを縦に並べる領域。 */
 .selected-video {
   display: none;
   margin: 0;
@@ -164,6 +172,7 @@ h1 {
   display: block;
 }
 
+/* 動画上部の日付と下部のYouTubeタイトルリンク。 */
 .video-date,
 .video-title {
   margin: 0;
@@ -171,7 +180,7 @@ h1 {
   font-size: 0.86rem;
   font-weight: 700;
   line-height: 1.5;
-    word-wrap: break-word; /* Added to ensure long URLs wrap correctly */
+  overflow-wrap: anywhere;
 }
 
 .selected-video.is-visible {
@@ -187,16 +196,19 @@ h1 {
   background: #cbd2dc;
 }
 
+/* 動画タイトルからYouTubeへ遷移するリンク。 */
 .video-title a {
   color: #35679b;
 }
 
+/* YouTube埋め込みiframe。 */
 .selected-video iframe {
   width: 100%;
   height: 100%;
   border: 0;
 }
 
+/* 動画リンクが存在しない場合のプレースホルダー。 */
 .video-status {
   display: grid;
   width: 100%;
@@ -208,6 +220,7 @@ h1 {
   font-weight: 700;
 }
 
+/* 商品ランキングと補足情報の表示領域。 */
 .selected-details {
   margin-top: 16px;
   color: var(--text);
@@ -215,16 +228,19 @@ h1 {
   line-height: 1.5;
 }
 
+/* ランキングカテゴリごとのセクション。 */
 .data-section {
   margin-top: 12px;
 }
 
+/* ランキングカテゴリ名。 */
 .data-section h3 {
   margin: 0 0 5px;
   font-size: 0.82rem;
   color: var(--muted);
 }
 
+/* 商品カードを縦に並べるリスト。 */
 .data-list {
   display: grid;
   gap: 8px;
@@ -233,6 +249,7 @@ h1 {
   list-style: none;
 }
 
+/* 番号なし補足項目を含む通常の商品カード。 */
 .data-list li {
   display: flex;
   align-items: flex-start;
@@ -245,6 +262,7 @@ h1 {
   box-shadow: 0 2px 5px rgba(103, 130, 185, 0.06);
 }
 
+/* 番号エリアと商品情報エリアに分割したランキングカード。 */
 .data-list li.ranked-item {
   align-items: stretch;
   background: transparent;
@@ -253,6 +271,7 @@ h1 {
   padding: 0;
 }
 
+/* ランキング番号を表示する左側エリア。 */
 .card-rank {
   flex: 0 0 2rem;
   color: var(--muted);
@@ -265,6 +284,7 @@ h1 {
   border-radius: 7px 0 0 7px;
 }
 
+/* 商品名とショップ情報を表示する右側エリア。 */
 .card-content {
   flex: 1 1 auto;
   background: rgb(246, 249, 253);
@@ -273,6 +293,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+/* 商品名の下に表示するショップ情報。 */
 .shop-line {
   display: block;
   margin-top: 4px;
@@ -280,10 +301,12 @@ h1 {
   font-size: 0.78rem;
 }
 
+/* 商品カード内のショップリンク。 */
 .data-list a {
   color: #35679b;
 }
 
+/* データ取得中やエラー時の状態メッセージ。 */
 .data-status {
   margin: 0;
   color: var(--muted);
