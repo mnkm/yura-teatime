@@ -37,42 +37,22 @@ const svgNamespace = 'http://www.w3.org/2000/svg';
 const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1TKqXbi7JbfVjlm7O1LxXh2Q-AA9V5sJN51b0eK_wCHg/export?format=xlsx';
 let prefectureData = new Map();
 
-function parseCsv(csvText) {
-  const rows = [];
-  let row = [];
-  let field = '';
-  let quoted = false;
-
-  for (let index = 0; index < csvText.length; index += 1) {
-    const character = csvText[index];
-    const nextCharacter = csvText[index + 1];
-
-    if (character === '"' && quoted && nextCharacter === '"') {
-      field += '"';
-      index += 1;
-    } else if (character === '"') {
-      quoted = !quoted;
-    } else if (character === ',' && !quoted) {
-      row.push(field);
-      field = '';
-    } else if ((character === '\n' || character === '\r') && !quoted) {
-      if (character === '\r' && nextCharacter === '\n') index += 1;
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = '';
-    } else {
-      field += character;
-    }
-  }
-
-  if (field || row.length) {
-    row.push(field);
-    rows.push(row);
-  }
-  return rows;
+// スプレッドシート由来の値を安全に文字列へ変換し、前後の空白を除去する。
+function cellText(value) {
+  return String(value ?? '').trim();
 }
 
+// 地図とスプレッドシートで異なる都道府県コード表記を2桁に統一する。
+function normalizeCode(value) {
+  return cellText(value).padStart(2, '0');
+}
+
+// セルの値がランキング番号として扱えるか判定する。
+function isNumberedItem(value) {
+  return /^\d+$/.test(value);
+}
+
+// 見出し文から都道府県コードを特定する。
 function codeForSpreadsheetHeading(heading) {
   return Object.entries(prefectureNames).find(([, name]) => {
     const shortName = name.replace(/[県府]$/, '');
@@ -80,6 +60,7 @@ function codeForSpreadsheetHeading(heading) {
   })?.[0] || '';
 }
 
+// YouTubeの各種URLをiframe埋め込み用URLへ変換する。
 function youtubeEmbedUrl(url) {
   if (!url) return '';
 
@@ -95,6 +76,7 @@ function youtubeEmbedUrl(url) {
   }
 }
 
+// 見出し行から配信日と「#」以降の動画タイトルを分離する。
 function parseHeadingText(heading) {
   const dateMatch = heading.match(/^(\d{2})\.(\d{1,2})\/(\d{1,2})/);
   const hashIndex = heading.indexOf('#');
@@ -106,6 +88,7 @@ function parseHeadingText(heading) {
   return { dateLabel, title };
 }
 
+// 選択された都道府県の配信日、動画、タイトルリンクを情報パネルへ描画する。
 function renderSelectedVideo(data) {
   selectedVideo.replaceChildren();
   const { dateLabel, title } = data ? parseHeadingText(data.title) : {};
@@ -139,21 +122,33 @@ function renderSelectedVideo(data) {
   if (title) {
     const caption = document.createElement('p');
     caption.className = 'video-title';
-      if (data?.videoUrl) {
-        const link = document.createElement('a');
-        link.href = data.videoUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = title;
-        caption.appendChild(link);
-      } else {
-        caption.textContent = title;
-      }
+    if (data?.videoUrl) {
+      const link = document.createElement('a');
+      link.href = data.videoUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = title;
+      caption.appendChild(link);
+    } else {
+      caption.textContent = title;
+    }
     selectedVideo.appendChild(caption);
   }
   selectedVideo.classList.add('is-visible');
 }
 
+// 結合セルの範囲を調べ、値とリンクを持つ先頭セルを返す。
+function getMergedCell(sheet, rowIndex, columnIndex) {
+  const merge = (sheet['!merges'] || []).find((range) => (
+    range.s.c <= columnIndex && range.e.c >= columnIndex
+      && range.s.r <= rowIndex && range.e.r >= rowIndex
+  ));
+
+  const sourceRow = merge?.s.r ?? rowIndex;
+  return sheet[XLSX.utils.encode_cell({ r: sourceRow, c: columnIndex })];
+}
+
+// 公開XLSXの全シートを読み込み、都道府県単位のデータへ変換する。
 async function loadSpreadsheetData() {
   const response = await fetch(spreadsheetUrl);
   if (!response.ok) {
@@ -161,13 +156,14 @@ async function loadSpreadsheetData() {
   }
 
   const workbook = XLSX.read(await response.arrayBuffer(), { type: 'array' });
+  // XLSXを直接解析することで、CSV変換時に失われる結合セルとリンク情報を保持する。
   workbook.SheetNames.forEach((sheetName) => {
     const sheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
     let currentBlock = null;
 
     rows.forEach((row, rowIndex) => {
-      const firstCell = String(row[0] ?? '').trim();
+      const firstCell = cellText(row[0]);
       const code = codeForSpreadsheetHeading(firstCell);
 
       if (code) {
@@ -181,15 +177,11 @@ async function loadSpreadsheetData() {
         return;
       }
 
-      if (currentBlock && row.some((cell) => String(cell ?? '').trim())) {
-        const shopMerge = (sheet['!merges'] || []).find((merge) => (
-          merge.s.c <= 2 && merge.e.c >= 2 && merge.s.r <= rowIndex && merge.e.r >= rowIndex
-        ));
-        const shopRowIndex = shopMerge?.s.r ?? rowIndex;
-        const shopCell = sheet[XLSX.utils.encode_cell({ r: shopRowIndex, c: 2 })];
+      if (currentBlock && row.some((cell) => cellText(cell))) {
+        const shopCell = getMergedCell(sheet, rowIndex, 2);
         currentBlock.rows.push({
           cells: row,
-          shopName: String(shopCell?.v ?? '').trim(),
+          shopName: cellText(shopCell?.v),
           shopUrl: shopCell?.l?.Target || ''
         });
       }
@@ -197,6 +189,7 @@ async function loadSpreadsheetData() {
   });
 }
 
+// 選択された都道府県のカテゴリ、商品、ショップ情報をカードとして描画する。
 function renderSpreadsheetData(code) {
   selectedDetails.replaceChildren();
   const data = prefectureData.get(code);
@@ -210,11 +203,11 @@ function renderSpreadsheetData(code) {
 
   data.rows.forEach((rowData) => {
     const row = rowData.cells;
-    const values = row.map((cell) => String(cell ?? '').trim());
+    const values = row.map(cellText);
     const hasValue = values.some(Boolean);
     if (!hasValue || values[0] === '👑') return;
 
-    const isRankedItem = /^\d+$/.test(values[0]);
+    const isRankedItem = isNumberedItem(values[0]);
     const isSectionHeading = !isRankedItem && Boolean(values[0]) && values.slice(1).every((value) => !value);
 
     if (isSectionHeading) {
@@ -243,6 +236,7 @@ function renderSpreadsheetData(code) {
       list.appendChild(items);
     }
 
+    // 結合セルで順位が空欄になった行は、同じランキング内の直前順位を引き継ぐ。
     const inheritedRank = currentSectionIsRanking && !values[0] && previousRank;
     const rankValue = isRankedItem ? values[0] : inheritedRank;
     const shouldShowRank = Boolean(rankValue);
@@ -285,8 +279,9 @@ function renderSpreadsheetData(code) {
   });
 }
 
+// 地図上の選択状態と右側の情報パネルを選択県に同期する。
 function updateSelection(prefectureElement) {
-  const code = (prefectureElement.dataset.code || '').padStart(2, '0');
+  const code = normalizeCode(prefectureElement.dataset.code);
   const name = prefectureElement.dataset.name || prefectureNames[code] || '都道府県';
 
   selectedHeading.textContent = name;
@@ -294,6 +289,7 @@ function updateSelection(prefectureElement) {
   renderSpreadsheetData(code);
 }
 
+// GeoloniaのSVG地図を読み込み、色分け・ラベル・選択イベントを設定する。
 async function loadMap() {
   const svgUrl = 'https://raw.githubusercontent.com/geolonia/japanese-prefectures/master/map-polygon.svg';
   const response = await fetch(svgUrl);
@@ -308,7 +304,7 @@ async function loadMap() {
   const prefectures = mapContainer.querySelectorAll('.geolonia-svg-map .prefecture');
 
   prefectures.forEach((prefecture) => {
-    const code = (prefecture.dataset.code || '').padStart(2, '0');
+    const code = normalizeCode(prefecture.dataset.code);
     const titleText = prefecture.querySelector('title')?.textContent || '';
     const displayName = prefectureNames[code] || titleText.split('/')[0]?.trim() || '都道府県';
     const region = regionNames[code] || '';
@@ -326,13 +322,16 @@ async function loadMap() {
     label.setAttribute('aria-hidden', 'true');
     prefecture.appendChild(label);
 
+    // クリックとキーボード操作で同じ選択処理を共有する。
     const activate = () => {
       prefectures.forEach((item) => item.classList.remove('is-selected'));
       prefecture.classList.add('is-selected');
       updateSelection(prefecture);
     };
 
+    // マウスクリックで都道府県を選択する。
     prefecture.addEventListener('click', activate);
+    // EnterまたはSpaceで、クリックと同じ選択処理を実行する。
     prefecture.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
@@ -341,13 +340,15 @@ async function loadMap() {
     });
   });
 
-  const defaultPref = [...prefectures].find((prefecture) => prefecture.dataset.code === '13');
+  // 初期状態では東京都を選択して、情報パネルを空の状態にしない。
+  const defaultPref = [...prefectures].find((prefecture) => normalizeCode(prefecture.dataset.code) === '13');
   if (defaultPref) {
     defaultPref.classList.add('is-selected');
     updateSelection(defaultPref);
   }
 }
 
+// 外部データを読み込んだ後に地図を初期化する。
 async function initialize() {
   try {
     await loadSpreadsheetData();
