@@ -106,9 +106,22 @@ function parseHeadingText(heading) {
   return { dateLabel, title };
 }
 
-// 選択された都道府県の配信日、動画、タイトルリンクを情報パネルへ描画する。
-function renderSelectedVideo(data) {
+// 選択状態に応じて動画、配信日、タイトルリンクを情報パネルへ描画する。
+function renderSelectedVideo(data, isSelected = false) {
   selectedVideo.replaceChildren();
+
+  if (!isSelected) {
+    const videoFrame = document.createElement('div');
+    videoFrame.className = 'video-frame';
+    const status = document.createElement('p');
+    status.className = 'video-status';
+    status.textContent = '都道府県を選択してください';
+    videoFrame.appendChild(status);
+    selectedVideo.appendChild(videoFrame);
+    selectedVideo.classList.add('is-visible');
+    return;
+  }
+
   const { dateLabel, title } = data ? parseHeadingText(data.title) : {};
 
   if (dateLabel) {
@@ -308,7 +321,7 @@ function updateSelection(prefectureElement) {
   const name = prefectureElement.dataset.name || prefectureNames[code] || '都道府県';
 
   selectedHeading.textContent = name;
-  renderSelectedVideo(prefectureData.get(code));
+  renderSelectedVideo(prefectureData.get(code), true);
   renderSpreadsheetData(code);
 }
 
@@ -364,12 +377,9 @@ async function loadMap() {
     });
   });
 
-  // 初期状態では東京都を選択して、情報パネルを空の状態にしない。
-  const defaultPref = [...prefectures].find((prefecture) => normalizeCode(prefecture.dataset.code) === '13');
-  if (defaultPref) {
-    defaultPref.classList.add('is-selected');
-    updateSelection(defaultPref);
-  }
+  selectedHeading.textContent = '';
+  renderSelectedVideo(null);
+  selectedDetails.replaceChildren();
 }
 
 // 外部データを読み込んだ後に地図を初期化する。

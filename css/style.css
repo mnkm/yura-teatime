@@ -87,7 +87,8 @@ h1 {
 
   .info-panel {
     height: auto;
-    min-height: 460px;
+    min-height: 0;
+    max-height: none;
   }
 
   .info-panel .selected-details {
@@ -196,8 +197,11 @@ h1 {
 .info-panel {
   padding: 20px 18px;
   min-width: 0;
-  height: max(460px, 52vw);
+  height: auto;
+  max-height: max(460px, 52vw);
   min-height: 0;
+  align-self: start;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -399,7 +403,8 @@ h1 {
 @media (max-width: 660px) {
   .info-panel {
     height: auto;
-    min-height: 460px;
+    min-height: 0;
+    max-height: none;
   }
 
   .info-panel .selected-details {
