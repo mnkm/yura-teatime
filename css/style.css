@@ -1,28 +1,72 @@
 :root {
   /* ページ全体と各パネルで共有する配色。 */
   --page-bg: #edf4ff;
-  --panel-bg: rgba(223, 234, 246, 0.9);
-  --panel-border: rgba(255, 255, 255, 0.75);
-  --text: #1a2540;
-  --muted: #5f708d;
-  --selected: #d7e7ff;
-  --selected-stroke: #a8c5ee;
+  --panel-bg: rgba(24, 25, 22, 0.84);
+  --panel-border: rgba(223, 194, 150, 0.32);
+  --text: #f4eee4;
+  --muted: #c8bba8;
+  --selected: #4a5b38;
+  --selected-stroke: #bca46f;
 }
 
 * {
   box-sizing: border-box;
 }
 
+/* ページ全体へ適用するGoogle Fontsの可変フォント設定。 */
+.noto-sans-jp {
+  font-family: "Noto Sans JP", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* 将来の個別指定で利用できるZen Kurenaidoのフォント設定。 */
+.zen-kurenaido-regular {
+  font-family: "Zen Kurenaido", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* 将来の個別指定で利用できるLeague Scriptのフォント設定。 */
+.league-script-regular {
+  font-family: "League Script", cursive;
+  font-weight: 500;
+  font-style: normal;
+  -webkit-text-stroke: 0.35px currentColor;
+  text-shadow: 0.35px 0 currentColor, -0.35px 0 currentColor;
+}
+
+/* 背景画像レイヤーを表示するため、ルート要素の背景を透明にする。 */
+html {
+  background: transparent;
+}
+
 /* ページ全体の基本レイアウトと文字色。 */
 body {
   margin: 0;
-  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-  background: var(--page-bg);
+  font-family: "Noto Sans JP", sans-serif;
+  position: relative;
+  isolation: isolate;
+  background: var(--page-bg) url("../img/background.jpeg") center / cover fixed no-repeat;
   color: var(--text);
 }
 
+/* ページの背景画像だけをぼかし、前景のUIは鮮明に保つ。 */
+body::before {
+  position: fixed;
+  inset: -16px;
+  z-index: 0;
+  content: "";
+  background: rgba(10, 12, 10, 0.18);
+  backdrop-filter: blur(8px);
+}
+
+/* ページ全体の幅と下部余白。 */
 .page {
   width: 100%;
+  position: relative;
+  z-index: 1;
   margin: 0 auto;
   padding: 30px 18px 88px;
 }
@@ -35,7 +79,7 @@ body {
   left: 0;
   z-index: 10;
   padding: 8px 18px;
-  background: rgba(237, 244, 255, 0.94);
+  background: rgba(24, 25, 22, 0.92);
   border-top: 1px solid var(--panel-border);
   color: var(--muted);
   text-align: center;
@@ -48,7 +92,7 @@ body {
 }
 
 .license-notice a {
-  color: #35679b;
+  color: #e2bd78;
 }
 
 /* ページ上部のキャッチコピーとタイトル。 */
@@ -59,16 +103,102 @@ body {
 
 .eyebrow {
   margin: 0 0 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
   color: var(--muted);
   text-transform: uppercase;
 }
 
+/* 指定曲線SVGに沿って表示するヘッダキャプション。 */
+.title-caption {
+  position: absolute;
+  top: 2%;
+  transform: rotate(1deg);
+  left: clamp(-25px, -10vw, -72px);
+  z-index: 2;
+  width: clamp(360px, 48vw, 720px);
+  margin: 0;
+}
+
+.title-caption svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+#caption-curve {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 2px;
+}
+
+.title-caption text {
+  fill: var(--text);
+  font-family: "Zen Kurenaido", sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-anchor: middle;
+}
+
 h1 {
   margin: 0;
-  font-size: clamp(2rem, 3vw, 3rem);
+}
+
+/* 4段構成で表示するページタイトル。 */
+.page-title {
+  position: absolute;
+  top: 5%;
+  left: 15%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* SVGと同じ#map幅を基準にタイトルも拡大・縮小する。 */
+  font-size: max(1rem, calc(4.25cqw + 7px));
+  line-height: 1.05;
+  pointer-events: none;
+}
+
+.title-line {
+  display: block;
+  font-size: 1em;
+}
+
+.title-line-small {
+  font-size: 0.5em;
+}
+
+/* 文字数とフォントの見た目に合わせ、1段目をTeaの開始位置へ重ねる。 */
+.title-line-first {
+  position: relative;
+  left: -5.50em;
+  top: 0.75em;
+  transform: rotate(-30deg);
+  transform-origin: center;
+}
+
+.title-line-large {
+  font-size: 2em;
+  transform: rotate(-4deg);
+  transform-origin: center;
+}
+
+/* 3段目の開始位置を、4段目の「Time」の開始位置へ合わせる。 */
+.title-line-third {
+  position: relative;
+  left: 1.54em;
+  transform: translateX(-0.93em) rotate(-4deg);
+  transform-origin: center;
+}
+
+/* 2段目の2文字目を3段目の1文字目へ水平に合わせる。 */
+.title-line-second {
+  position: relative;
+  left: 0.61em;
+  transform: translateX(-0.93em) rotate(-4deg);
+  transform-origin: center;
 }
 
 /* 地図パネルと情報パネルを横並びにするメインレイアウト。 */
@@ -79,10 +209,43 @@ h1 {
   align-items: stretch;
 }
 
+/* 横並び時は画面内に収まる高さへ固定し、詳細欄だけをスクロールさせる。 */
+@media (min-width: 661px) {
+  body {
+    overflow: hidden;
+  }
+
+  .page {
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .content {
+    height: calc(100vh - 210px);
+  }
+
+  .map-panel,
+  .info-panel {
+    height: 100%;
+    max-height: none;
+  }
+}
+
 /* 2つのパネルの最小幅を同時に確保できない画面では縦積みにする。 */
 @media (max-width: 660px) {
   .content {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map-panel {
+    height: auto !important;
+    min-height: 0;
+  }
+
+  #map {
+    height: auto;
+    aspect-ratio: 1 / 1;
   }
 
   .info-panel {
@@ -108,6 +271,7 @@ h1 {
 
 /* 日本地図を表示する左側パネル。 */
 .map-panel {
+  position: relative;
   padding: 18px;
   height: max(460px, 52vw);
   min-height: 0;
@@ -115,6 +279,8 @@ h1 {
 
 /* SVG地図の表示領域。 */
 #map {
+  position: relative;
+  container-type: inline-size;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -124,8 +290,20 @@ h1 {
   overflow: hidden;
 }
 
+/* タイトルを保持したままSVG地図を描画する領域。 */
+#map-svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* GeoloniaのSVG地図本体。 */
 .geolonia-svg-map {
+  position: absolute;
+  inset: 0;
   width: 100%;
   max-height: 100%;
   height: auto;
@@ -215,8 +393,8 @@ h1 {
 /* 動画と詳細情報を囲む情報ボックス。 */
 .selected-box {
   flex: 0 0 auto;
-  background: rgba(220, 232, 247, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(42, 44, 40, 0.9);
+  border: 1px solid rgba(223, 194, 150, 0.32);
   border-radius: 16px;
   padding: 18px 16px;
 }
@@ -235,7 +413,7 @@ h1 {
 .video-date,
 .video-title {
   margin: 0;
-  color: var(--text);
+  color: #f4eee4;
   font-size: 0.86rem;
   font-weight: 700;
   line-height: 1.5;
@@ -252,14 +430,15 @@ h1 {
   overflow: hidden;
   border-radius: 10px;
   aspect-ratio: 16 / 9;
-  background: #cbd2dc;
+  background: rgba(42, 44, 40, 0.94);
+  border: 1px solid rgba(223, 194, 150, 0.28);
   background-position: center;
   background-size: cover;
 }
 
 /* 動画タイトルからYouTubeへ遷移するリンク。 */
 .video-title a {
-  color: #35679b;
+  color: #e2bd78;
 }
 
 /* YouTube埋め込みiframe。 */
@@ -277,7 +456,8 @@ h1 {
   height: 100%;
   place-items: center;
   margin: 0;
-  color: #647080;
+  color: #f4eee4;
+  background: rgba(42, 44, 40, 0.94);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -314,6 +494,24 @@ h1 {
   background: rgba(95, 112, 141, 0.42);
 }
 
+/* 横並びかつ低い画面では動画を縮小し、ランキング表示領域を確保する。 */
+@media (min-width: 661px) and (max-height: 799px) {
+  .selected-box {
+    padding: 12px;
+  }
+
+  .info-panel h2 {
+    margin-bottom: 10px;
+  }
+
+  .video-frame {
+    width: min(100%, calc(22vh * 16 / 9));
+    height: auto;
+    aspect-ratio: 16 / 9;
+    align-self: center;
+  }
+}
+
 /* ランキングカテゴリごとのセクション。 */
 .data-section {
   margin-top: 12px;
@@ -323,7 +521,7 @@ h1 {
 .data-section h3 {
   margin: 0 0 5px;
   font-size: 0.82rem;
-  color: var(--muted);
+  color: #e0d4c1;
 }
 
 /* 商品カードを縦に並べるリスト。 */
@@ -343,8 +541,8 @@ h1 {
   gap: 8px;
   margin: 0;
   padding: 9px 10px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(42, 44, 40, 0.9);
+  border: 1px solid rgba(223, 194, 150, 0.24);
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(103, 130, 185, 0.06);
 }
@@ -361,20 +559,20 @@ h1 {
 /* ランキング番号を表示する左側エリア。 */
 .card-rank {
   flex: 0 0 2rem;
-  color: var(--muted);
+  color: #f4eee4;
   font-weight: 800;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #d7e7f7;
+  background: #4a5b38;
   border-radius: 7px 0 0 7px;
 }
 
 /* 商品名とショップ情報を表示する右側エリア。 */
 .card-content {
   flex: 1 1 auto;
-  background: rgb(246, 249, 253);
+  background: rgba(42, 44, 40, 0.9);
   min-width: 0;
   padding: 9px 10px;
   overflow-wrap: anywhere;
@@ -384,13 +582,13 @@ h1 {
 .shop-line {
   display: block;
   margin-top: 4px;
-  color: var(--muted);
+  color: #cfc1ad;
   font-size: 0.78rem;
 }
 
 /* 商品カード内のショップリンク。 */
 .data-list a {
-  color: #35679b;
+  color: #e2bd78;
 }
 
 /* データ取得中やエラー時の状態メッセージ。 */
@@ -410,6 +608,30 @@ h1 {
   .info-panel .selected-details {
     flex: 0 0 auto;
     overflow-y: visible;
+  }
+}
+
+/* 横並び時は共通ルールより優先して、両パネルを同じ画面内の高さに揃える。 */
+@media (min-width: 661px) {
+  .page {
+    padding-bottom: 80px;
+    overflow: hidden;
+  }
+
+  .content {
+    height: calc(100vh - 210px);
+    align-items: center;
+  }
+
+  .map-panel,
+  .info-panel {
+    height: max(460px, 52vw);
+    max-height: none;
+    min-height: 0;
+  }
+
+  .info-panel {
+    align-self: center;
   }
 }
 

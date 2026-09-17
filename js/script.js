@@ -31,6 +31,7 @@ const regionClasses = {
 
 // 突出部を除いた主領域の中央に合わせるための垂直方向だけのラベル補正値。
 const labelVerticalOffsets = {
+  // 島の突出部などで地理的中心とラベルの見た目の中心がずれる県。
   '01': -12,
   '13': -10,
   '15': 23,
@@ -39,6 +40,7 @@ const labelVerticalOffsets = {
 };
 
 const mapContainer = document.querySelector('#map');
+const mapSvgContainer = document.querySelector('#map-svg') || mapContainer;
 const selectedHeading = document.querySelector('#selected-heading');
 const selectedVideo = document.querySelector('#selected-video');
 const selectedDetails = document.querySelector('#selected-details');
@@ -75,11 +77,21 @@ function youtubeEmbedUrl(url) {
 
   try {
     const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isYouTubeHost = hostname === 'youtube.com'
+      || hostname === 'www.youtube.com'
+      || hostname === 'm.youtube.com'
+      || hostname === 'youtu.be';
+    if (!isYouTubeHost) return '';
+
     const liveMatch = parsedUrl.pathname.match(/^\/live\/([^/]+)/);
+    const shortsMatch = parsedUrl.pathname.match(/^\/shorts\/([^/]+)/);
     const watchId = parsedUrl.searchParams.get('v');
-    const shortMatch = parsedUrl.hostname === 'youtu.be' ? parsedUrl.pathname.match(/^\/([^/]+)/) : null;
-    const videoId = liveMatch?.[1] || watchId || shortMatch?.[1];
-    return videoId ? `https://www.youtube.com/embed/${videoId}?rel=0` : '';
+    const shortMatch = hostname === 'youtu.be' ? parsedUrl.pathname.match(/^\/([^/]+)/) : null;
+    const videoId = liveMatch?.[1] || shortsMatch?.[1] || watchId || shortMatch?.[1];
+    return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)
+      ? `https://www.youtube.com/embed/${videoId}?rel=0`
+      : '';
   } catch {
     return '';
   }
@@ -92,6 +104,18 @@ function youtubeThumbnailUrl(url) {
 
   const videoId = embedUrl.split('/embed/')[1]?.split('?')[0];
   return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '';
+}
+
+// 外部データ由来のリンクはHTTP(S)だけを許可し、javascript:などを排除する。
+function safeHttpUrl(value) {
+  if (!value) return '';
+
+  try {
+    const parsedUrl = new URL(value);
+    return /^https?:$/.test(parsedUrl.protocol) ? parsedUrl.href : '';
+  } catch {
+    return '';
+  }
 }
 
 // 見出し行から配信日と「#」以降の動画タイトルを分離する。
@@ -158,9 +182,10 @@ function renderSelectedVideo(data, isSelected = false) {
   if (title) {
     const caption = document.createElement('p');
     caption.className = 'video-title';
-    if (data?.videoUrl) {
+    const videoLink = safeHttpUrl(data?.videoUrl);
+    if (videoLink) {
       const link = document.createElement('a');
-      link.href = data.videoUrl;
+      link.href = videoLink;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.textContent = title;
@@ -173,7 +198,7 @@ function renderSelectedVideo(data, isSelected = false) {
   selectedVideo.classList.add('is-visible');
 }
 
-// 結合セルの範囲を調べ、値とリンクを持つ先頭セルを返す。
+// 結合セルは各行に値が複製されないため、対象セルを含む範囲の先頭セルを参照する。
 function getMergedCell(sheet, rowIndex, columnIndex) {
   const merge = (sheet['!merges'] || []).find((range) => (
     range.s.c <= columnIndex && range.e.c >= columnIndex
@@ -335,9 +360,11 @@ async function loadMap() {
   }
 
   const svgText = await response.text();
-  mapContainer.innerHTML = svgText;
+  const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  const svgElement = svgDocument.documentElement;
+  mapSvgContainer.appendChild(document.importNode(svgElement, true));
 
-  const prefectures = mapContainer.querySelectorAll('.geolonia-svg-map .prefecture');
+  const prefectures = mapSvgContainer.querySelectorAll('.geolonia-svg-map .prefecture');
 
   prefectures.forEach((prefecture) => {
     const code = normalizeCode(prefecture.dataset.code);
