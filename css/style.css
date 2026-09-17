@@ -101,47 +101,6 @@ body::before {
   margin-bottom: 20px;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
-/* 指定曲線SVGに沿って表示するヘッダキャプション。 */
-.title-caption {
-  position: absolute;
-  top: 2%;
-  transform: rotate(1deg);
-  left: clamp(-25px, -10vw, -72px);
-  z-index: 2;
-  width: clamp(360px, 48vw, 720px);
-  margin: 0;
-}
-
-.title-caption svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-#caption-curve {
-  fill: none;
-  stroke: transparent;
-  stroke-width: 2px;
-}
-
-.title-caption text {
-  fill: var(--text);
-  font-family: "Zen Kurenaido", sans-serif;
-  font-size: 8px;
-  letter-spacing: 0.15em;
-  text-anchor: middle;
-}
-
 h1 {
   margin: 0;
 }
