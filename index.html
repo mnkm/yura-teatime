@@ -4,18 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ゆらのゆるっとゆらっとTeaTime</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=League+Script&family=Noto+Sans+JP&family=Zen+Kurenaido&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css?v=review-refactor-1" />
   </head>
   <body>
     <div class="page">
-      <header class="topbar">
-        <p class="eyebrow">47都道府県をもぐもぐ！</p>
-        <h1>ゆらのゆるっとゆらっとTeaTime</h1>
-      </header>
-
       <main class="content">
         <section class="map-panel" aria-label="日本地図">
-          <div id="map"></div>
+          <div id="map">
+            <div id="map-svg">
+              <div class="eyebrow title-caption" role="img" aria-label="47都道府県をもぐもぐ！">
+                <svg viewBox="0 0 400 120" aria-hidden="true">
+                  <path id="caption-curve" d="M10,100 q180,-180 360,0" />
+                  <text>
+                    <textPath href="#caption-curve" startOffset="50%">47都道府県をもぐもぐ！</textPath>
+                  </text>
+                </svg>
+              </div>
+              <h1 class="page-title" aria-label="ゆらのゆるっとゆらっとTeaTime">
+                <span class="title-line title-line-first title-line-small zen-kurenaido-regular">＼ゆらの／</span>
+                <span class="title-line title-line-second zen-kurenaido-regular">ゆるっと</span>
+                <span class="title-line title-line-third zen-kurenaido-regular">ゆらっと</span>
+                <span class="title-line title-line-large league-script-regular">TeaTime</span>
+              </h1>
+            </div>
+          </div>
         </section>
 
         <aside class="info-panel" aria-live="polite">
@@ -32,13 +47,12 @@
         <small>
             Create: <a href="https://x.com/o2i_5" target="_blank" rel="noopener noreferrer">@o2i_5</a> / 
             Data: <a href="https://x.com/Shigure_1764" target="_blank" rel="noopener noreferrer">@Shigure_1764</a> /
-            SVG: <a href="https://github.com/geolonia/japanese-prefectures" target="_blank" rel="noopener noreferrer">Geolonia Japanese Prefectures</a> /
-            License: <a href="https://www.gnu.org/licenses/fdl-1.3.html" target="_blank" rel="noopener noreferrer">GNU Free Documentation License（GFDL）</a>
+            SVG: <a href="https://github.com/geolonia/japanese-prefectures" target="_blank" rel="noopener noreferrer">Geolonia Japanese Prefectures</a>
         </small>
       </footer>
     </div>
 
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-    <script src="js/script.js"></script>
+    <script src="js/script.js?v=review-refactor-1"></script>
   </body>
 </html>
