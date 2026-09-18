@@ -119,6 +119,22 @@ function safeHttpUrl(value) {
   }
 }
 
+// URLごとの到達性チェック結果をキャッシュし、同一URLへの重複リクエストを避ける。
+const shopUrlReachability = new Map();
+
+// ショップURLへ実際にアクセスし、HTTP 4xxが返るリンクを無効と判定する。
+// 多くの外部サイトはクロスオリジンからの検証をCORSで許可していないため、
+// 判定できない場合（通信エラーなど）はリンクを消さずフェイルオープンする。
+function checkShopUrlReachable(url) {
+  if (!shopUrlReachability.has(url)) {
+    const check = fetch(url, { method: 'GET', mode: 'cors', redirect: 'follow' })
+      .then((response) => !(response.status >= 400 && response.status < 500))
+      .catch(() => true);
+    shopUrlReachability.set(url, check);
+  }
+  return shopUrlReachability.get(url);
+}
+
 // 見出し行から配信日と「#」以降の動画タイトルを分離する。
 function parseHeadingText(heading) {
   const dateMatch = heading.match(/^(\d{2})\.(\d{1,2})\/(\d{1,2})/);
@@ -308,7 +324,7 @@ function renderSpreadsheetData(code) {
     const itemIndex = shouldShowRank ? 1 : (values[0] ? 0 : 1);
     const itemName = values[itemIndex] || '';
     const shopName = values[itemIndex + 1] || rowData.shopName || '';
-    const shopUrl = rowData.shopUrl || (/^https?:\/\//i.test(shopName) ? shopName : '');
+    const shopUrl = safeHttpUrl(rowData.shopUrl || (/^https?:\/\//i.test(shopName) ? shopName : ''));
     item.classList.toggle('ranked-item', shouldShowRank);
     if (shouldShowRank) {
       const rank = document.createElement('span');
@@ -322,20 +338,21 @@ function renderSpreadsheetData(code) {
     content.textContent = itemName;
     item.appendChild(content);
 
-    if (shopName) {
+    if (shopName && shopUrl) {
       const shop = document.createElement('span');
       shop.className = 'shop-line';
-      if (shopUrl) {
-        const link = document.createElement('a');
-        link.href = shopUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = shopName;
-        shop.appendChild(link);
-      } else {
-        shop.textContent = shopName;
-      }
+      const link = document.createElement('a');
+      link.href = shopUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = shopName;
+      shop.appendChild(link);
       content.appendChild(shop);
+
+      // 表示は即時に行い、リンク先が無効と判明した時点で取り除く。
+      checkShopUrlReachable(shopUrl).then((isReachable) => {
+        if (!isReachable) shop.remove();
+      });
     }
     items.appendChild(item);
   });
