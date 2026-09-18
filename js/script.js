@@ -351,8 +351,8 @@ function updateSelection(prefectureElement) {
   renderSpreadsheetData(code);
 }
 
-// GeoloniaのSVG地図を読み込み、色分け・ラベル・選択イベントを設定する。
-async function loadMap() {
+// GeoloniaのSVG地図をテキストとして取得する。
+async function fetchMapSvg() {
   const svgUrl = 'https://raw.githubusercontent.com/geolonia/japanese-prefectures/master/map-polygon.svg';
   const response = await fetch(svgUrl);
 
@@ -360,8 +360,16 @@ async function loadMap() {
     throw new Error('地図の読み込みに失敗しました');
   }
 
-  const svgText = await response.text();
+  return response.text();
+}
+
+// 取得したSVG地図を描画し、色分け・ラベル・選択イベントを設定する。
+function renderMap(svgText) {
   const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+  if (svgDocument.getElementsByTagName('parsererror').length > 0) {
+    throw new Error('地図の読み込みに失敗しました');
+  }
+
   const svgElement = svgDocument.documentElement;
   mapSvgContainer.appendChild(document.importNode(svgElement, true));
 
@@ -417,23 +425,30 @@ function hideSplashScreen() {
   splashScreen.addEventListener('transitionend', () => splashScreen.remove(), { once: true });
 }
 
-// 外部データを読み込んだ後に地図を初期化する。
+// 地図の読み込みに失敗した場合、タイトルロゴを保持したままエラーメッセージを添える。
+function showMapError(message) {
+  const status = document.createElement('p');
+  status.className = 'error';
+  status.textContent = message;
+  mapSvgContainer.appendChild(status);
+}
+
+// スプレッドシートと地図SVGは互いに依存しない通信のため並行して取得し、地図を初期化する。
 async function initialize() {
-  try {
-    await loadSpreadsheetData();
-  } catch (error) {
+  const spreadsheetPromise = loadSpreadsheetData().catch((error) => {
     const status = document.createElement('p');
     status.className = 'data-status';
     status.textContent = error.message;
     selectedDetails.replaceChildren(status);
-  }
+  });
 
-  await loadMap();
+  const [, svgText] = await Promise.all([spreadsheetPromise, fetchMapSvg()]);
+  renderMap(svgText);
 }
 
 initialize()
   .catch((error) => {
-    mapContainer.innerHTML = `<p class="error">${error.message}</p>`;
+    showMapError(error.message);
   })
   .finally(() => {
     hideSplashScreen();
