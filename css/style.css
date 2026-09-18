@@ -42,6 +42,41 @@ html {
   background: transparent;
 }
 
+/* 地図の読み込み完了までページ全体を覆うスプラッシュスクリーン。 */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #17180f;
+  transition: opacity 0.4s ease;
+}
+
+/* 読み込み完了後、フェードアウトさせて操作を可能にする。 */
+.splash-screen.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* title-logo.svgと同じ配色処理（黒線画をクリーム・ゴールド系へ変換）で表示。 */
+.splash-logo {
+  width: min(50vw, 320px);
+  height: auto;
+  filter: invert(1) sepia(8%) saturate(320%) hue-rotate(350deg) brightness(97%) contrast(96%);
+  animation: splash-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes splash-pulse {
+  0%, 100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* ページ全体の基本レイアウトと文字色。 */
 body {
   margin: 0;

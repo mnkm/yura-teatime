@@ -39,6 +39,7 @@ const labelVerticalOffsets = {
   '26': 23
 };
 
+const splashScreen = document.querySelector('#splash-screen');
 const mapContainer = document.querySelector('#map');
 const mapSvgContainer = document.querySelector('#map-svg') || mapContainer;
 const selectedHeading = document.querySelector('#selected-heading');
@@ -409,6 +410,13 @@ async function loadMap() {
   selectedDetails.replaceChildren();
 }
 
+// 読み込み完了後にスプラッシュスクリーンをフェードアウトさせ、操作を可能にする。
+function hideSplashScreen() {
+  if (!splashScreen) return;
+  splashScreen.classList.add('is-hidden');
+  splashScreen.addEventListener('transitionend', () => splashScreen.remove(), { once: true });
+}
+
 // 外部データを読み込んだ後に地図を初期化する。
 async function initialize() {
   try {
@@ -423,6 +431,10 @@ async function initialize() {
   await loadMap();
 }
 
-initialize().catch((error) => {
-  mapContainer.innerHTML = `<p class="error">${error.message}</p>`;
-});
+initialize()
+  .catch((error) => {
+    mapContainer.innerHTML = `<p class="error">${error.message}</p>`;
+  })
+  .finally(() => {
+    hideSplashScreen();
+  });
