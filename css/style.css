@@ -130,12 +130,6 @@ body::before {
   color: #e2bd78;
 }
 
-/* ページ上部のキャッチコピーとタイトル。 */
-.topbar {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
 h1 {
   margin: 0;
 }
@@ -176,57 +170,6 @@ h1 {
   grid-template-columns: minmax(320px, 6fr) minmax(280px, 4fr);
   gap: 22px;
   align-items: stretch;
-}
-
-/* 横並び時は画面内に収まる高さへ固定し、詳細欄だけをスクロールさせる。 */
-@media (min-width: 661px) {
-  body {
-    overflow: hidden;
-  }
-
-  .page {
-    min-height: 100vh;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  .content {
-    height: calc(100vh - 210px);
-  }
-
-  .map-panel,
-  .info-panel {
-    height: 100%;
-    max-height: none;
-  }
-}
-
-/* 2つのパネルの最小幅を同時に確保できない画面では縦積みにする。 */
-@media (max-width: 660px) {
-  .content {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .map-panel {
-    height: auto !important;
-    min-height: 0;
-  }
-
-  #map {
-    height: auto;
-    aspect-ratio: 1 / 1;
-  }
-
-  .info-panel {
-    height: auto;
-    min-height: 0;
-    max-height: none;
-  }
-
-  .info-panel .selected-details {
-    flex: 0 0 auto;
-    overflow-y: visible;
-  }
 }
 
 /* 地図・情報パネルに共通するカード外観。 */
@@ -566,8 +509,32 @@ h1 {
   color: var(--muted);
 }
 
-/* 狭い画面で縦積みになった右パネルは、ランキング全体を展開表示する。 */
+/* 地図の読み込みに失敗した場合のエラーメッセージ。 */
+.error {
+  margin: 0;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* 縦積み時、右パネルの高さ・スクロール指定を上書きしてランキング全体を展開表示する。
+   .info-panel/.selected-detailsの同名プロパティより後方に置き、カスケードで確実に上書きする。 */
 @media (max-width: 660px) {
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map-panel {
+    height: auto !important;
+    min-height: 0;
+  }
+
+  #map {
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
   .info-panel {
     height: auto;
     min-height: 0;
@@ -580,9 +547,16 @@ h1 {
   }
 }
 
-/* 横並び時は共通ルールより優先して、両パネルを同じ画面内の高さに揃える。 */
+/* 横並び時、右パネルの高さ・位置指定を上書きして地図パネルと高さを揃える。
+   .info-panelの同名プロパティより後方に置き、カスケードで確実に上書きする。 */
 @media (min-width: 661px) {
+  body {
+    overflow: hidden;
+  }
+
   .page {
+    min-height: 100vh;
+    height: 100vh;
     padding-bottom: 80px;
     overflow: hidden;
   }
@@ -603,4 +577,3 @@ h1 {
     align-self: center;
   }
 }
-
