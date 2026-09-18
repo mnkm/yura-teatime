@@ -125,7 +125,7 @@ h1 {
   position: absolute;
   left: 105%;
   z-index: 1;
-  width: min(55cqw, 420px);
+  width: 55cqw;
   height: auto;
   object-fit: contain;
   background: transparent;
