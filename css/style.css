@@ -105,7 +105,7 @@ h1 {
   margin: 0;
 }
 
-/* 4段構成で表示するページタイトル。 */
+/* ページタイトル。 */
 .page-title {
   position: absolute;
   top: 5%;
@@ -120,44 +120,19 @@ h1 {
   pointer-events: none;
 }
 
-.title-line {
-  display: block;
-  font-size: 1em;
-}
-
-.title-line-small {
-  font-size: 0.5em;
-}
-
-/* 文字数とフォントの見た目に合わせ、1段目をTeaの開始位置へ重ねる。 */
-.title-line-first {
-  position: relative;
-  left: -5.50em;
-  top: 0.75em;
-  transform: rotate(-30deg);
-  transform-origin: center;
-}
-
-.title-line-large {
-  font-size: 2em;
-  transform: rotate(-4deg);
-  transform-origin: center;
-}
-
-/* 3段目の開始位置を、4段目の「Time」の開始位置へ合わせる。 */
-.title-line-third {
-  position: relative;
-  left: 1.54em;
-  transform: translateX(-0.93em) rotate(-4deg);
-  transform-origin: center;
-}
-
-/* 2段目の2文字目を3段目の1文字目へ水平に合わせる。 */
-.title-line-second {
-  position: relative;
-  left: 0.61em;
-  transform: translateX(-0.93em) rotate(-4deg);
-  transform-origin: center;
+/* タイトル専用の装飾。反転した黒線を白線として背面に合成する。 */
+.title-logo {
+  position: absolute;
+  left: 105%;
+  z-index: 1;
+  width: min(55cqw, 420px);
+  height: auto;
+  object-fit: contain;
+  background: transparent;
+  filter: invert(1) sepia(8%) saturate(320%) hue-rotate(350deg) brightness(97%) contrast(96%);
+  mix-blend-mode: screen;
+  transform: translateX(-10%);
+  pointer-events: none;
 }
 
 /* 地図パネルと情報パネルを横並びにするメインレイアウト。 */
