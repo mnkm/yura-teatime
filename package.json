@@ -1,0 +1,11 @@
+{
+  "name": "yura-teatime-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-shop-urls": "node scripts/check-shop-urls.mjs"
+  },
+  "devDependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}

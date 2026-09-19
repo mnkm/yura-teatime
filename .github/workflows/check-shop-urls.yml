@@ -1,0 +1,31 @@
+name: Check shop URLs
+
+on:
+  schedule:
+    - cron: '0 18 * * *' # 毎日 JST 3:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: npm run check-shop-urls
+
+      - name: Commit updated shop status
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/shop-status.json
+          git diff --cached --quiet || git commit -m "chore: update shop URL status"
+          git push
