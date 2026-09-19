@@ -193,6 +193,8 @@ function renderSelectedVideo(data, isSelected = false) {
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
     iframe.allowFullscreen = true;
+    // src自体はyoutube.com/embed/配下に限定済みだが、多層防御としてsandboxで許可範囲を明示する。
+    iframe.sandbox = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation';
     videoFrame.appendChild(iframe);
   }
   selectedVideo.appendChild(videoFrame);
@@ -364,9 +366,11 @@ function updateSelection(prefectureElement) {
   renderSpreadsheetData(code);
 }
 
-// GeoloniaのSVG地図をテキストとして取得する。
+// Geoloniaの地図SVGを取得する。ビルド時に img/map-polygon.svg として取り込んだものを同一オリジンから読み込む。
+// 元データ: https://github.com/geolonia/japanese-prefectures （masterブランチを都度取得すると、
+// 上流の改変がそのままこのサイトのDOMに実行時反映されてしまうため、意図的にベンダリングしている）。
 async function fetchMapSvg() {
-  const svgUrl = 'https://raw.githubusercontent.com/geolonia/japanese-prefectures/master/map-polygon.svg';
+  const svgUrl = 'img/map-polygon.svg';
   const response = await fetch(svgUrl);
 
   if (!response.ok) {
@@ -376,6 +380,25 @@ async function fetchMapSvg() {
   return response.text();
 }
 
+// 外部由来のSVGに<script>やイベントハンドラ属性が紛れ込んでいた場合に備え、挿入前に取り除く。
+// DOMParserで解析したSVGはinnerHTML代入と異なりappendChildで挿入すると<script>が実行されるため、
+// ベンダリング済みで現状安全なファイルであっても多層防御として必ず通す。
+function sanitizeSvgElement(root) {
+  root.querySelectorAll('script, foreignObject').forEach((node) => node.remove());
+
+  // querySelectorAll('*')は起点ノード自身を含まないため、rootを明示的に含めて処理する。
+  [root, ...root.querySelectorAll('*')].forEach((node) => {
+    [...node.attributes].forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith('on') || (/^(?:xlink:href|href)$/.test(name) && /^\s*javascript:/i.test(attr.value))) {
+        node.removeAttribute(attr.name);
+      }
+    });
+  });
+
+  return root;
+}
+
 // 取得したSVG地図を描画し、色分け・ラベル・選択イベントを設定する。
 function renderMap(svgText) {
   const svgDocument = new DOMParser().parseFromString(svgText, 'image/svg+xml');
@@ -383,7 +406,7 @@ function renderMap(svgText) {
     throw new Error('地図の読み込みに失敗しました');
   }
 
-  const svgElement = svgDocument.documentElement;
+  const svgElement = sanitizeSvgElement(svgDocument.documentElement);
   mapSvgContainer.appendChild(document.importNode(svgElement, true));
 
   const prefectures = mapSvgContainer.querySelectorAll('.geolonia-svg-map .prefecture');
