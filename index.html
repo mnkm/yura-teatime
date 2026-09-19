@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ゆらのゆるっとゆらっとTeaTime</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.sheetjs.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' https://i.ytimg.com; connect-src 'self' https://docs.google.com https://*.googleusercontent.com; frame-src https://www.youtube.com; object-src 'none'; base-uri 'self';"
+    />
     <link rel="icon" type="image/svg+xml" href="img/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -46,7 +50,11 @@
       </footer>
     </div>
 
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script
+      src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+      integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"
+      crossorigin="anonymous"
+    ></script>
     <script src="js/script.js?v=splash-screen-1"></script>
   </body>
 </html>
