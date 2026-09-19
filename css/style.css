@@ -60,9 +60,10 @@ html {
   pointer-events: none;
 }
 
-/* title-logo.svgと同じ配色処理（黒線画をクリーム・ゴールド系へ変換）で表示。 */
+/* title-logo.svgと同じ配色処理（黒線画をクリーム・ゴールド系へ変換）で表示。
+   横長・縦長どちらのウィンドウでもはみ出さないよう、幅・高さ両方の制約で追従させる。 */
 .splash-logo {
-  width: min(50vw, 320px);
+  width: min(60vw, 60vh);
   height: auto;
   filter: invert(1) sepia(8%) saturate(320%) hue-rotate(350deg) brightness(97%) contrast(96%);
   animation: splash-pulse 1.6s ease-in-out infinite;
