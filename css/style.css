@@ -244,10 +244,10 @@ h1 {
 .geolonia-svg-map .prefecture.region-shikoku { fill: #d9d2f0; }
 .geolonia-svg-map .prefecture.region-kyushu { fill: #ecd3e8; }
 
-/* スプレッドシートにデータがない都道府県の明るい灰色。 */
+/* スプレッドシートにデータがない都道府県は、地方色のパステルと混同しないよう無彩色に近いグレーにする。 */
 .geolonia-svg-map .prefecture.no-data,
 .geolonia-svg-map .prefecture.no-data.is-selected {
-  fill: #d7dce2 !important;
+  fill: #b8bcc2 !important;
 }
 
 /* データがない都道府県も、ホバー時は操作対象として色を変える。 */
