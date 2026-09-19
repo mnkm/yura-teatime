@@ -119,20 +119,21 @@ function safeHttpUrl(value) {
   }
 }
 
-// URLごとの到達性チェック結果をキャッシュし、同一URLへの重複リクエストを避ける。
-const shopUrlReachability = new Map();
+// GitHub ActionsがCI上で定期的に検証し、HTTP 4xxが確認できたショップURLを記録した静的データ。
+// ブラウザからのfetchは多くの外部サイトでCORSにより検証できないため、事前チェック結果を利用する。
+const shopStatusUrl = 'data/shop-status.json';
+let brokenShopUrls = new Set();
 
-// ショップURLへ実際にアクセスし、HTTP 4xxが返るリンクを無効と判定する。
-// 多くの外部サイトはクロスオリジンからの検証をCORSで許可していないため、
-// 判定できない場合（通信エラーなど）はリンクを消さずフェイルオープンする。
-function checkShopUrlReachable(url) {
-  if (!shopUrlReachability.has(url)) {
-    const check = fetch(url, { method: 'GET', mode: 'cors', redirect: 'follow' })
-      .then((response) => !(response.status >= 400 && response.status < 500))
-      .catch(() => true);
-    shopUrlReachability.set(url, check);
+// 事前チェック結果を読み込む。取得できない場合は何も無効化せずフェイルオープンする。
+async function loadShopStatus() {
+  try {
+    const response = await fetch(shopStatusUrl);
+    if (!response.ok) return;
+    const data = await response.json();
+    brokenShopUrls = new Set(data.brokenUrls || []);
+  } catch {
+    // ネットワークエラー等。ショップリンクの非表示判定は行わない。
   }
-  return shopUrlReachability.get(url);
 }
 
 // 見出し行から配信日と「#」以降の動画タイトルを分離する。
@@ -338,7 +339,7 @@ function renderSpreadsheetData(code) {
     content.textContent = itemName;
     item.appendChild(content);
 
-    if (shopName && shopUrl) {
+    if (shopName && shopUrl && !brokenShopUrls.has(shopUrl)) {
       const shop = document.createElement('span');
       shop.className = 'shop-line';
       const link = document.createElement('a');
@@ -348,11 +349,6 @@ function renderSpreadsheetData(code) {
       link.textContent = shopName;
       shop.appendChild(link);
       content.appendChild(shop);
-
-      // 表示は即時に行い、リンク先が無効と判明した時点で取り除く。
-      checkShopUrlReachable(shopUrl).then((isReachable) => {
-        if (!isReachable) shop.remove();
-      });
     }
     items.appendChild(item);
   });
@@ -450,7 +446,7 @@ function showMapError(message) {
   mapSvgContainer.appendChild(status);
 }
 
-// スプレッドシートと地図SVGは互いに依存しない通信のため並行して取得し、地図を初期化する。
+// スプレッドシート・ショップURLの事前チェック結果・地図SVGは互いに依存しない通信のため並行して取得し、地図を初期化する。
 async function initialize() {
   const spreadsheetPromise = loadSpreadsheetData().catch((error) => {
     const status = document.createElement('p');
@@ -459,7 +455,7 @@ async function initialize() {
     selectedDetails.replaceChildren(status);
   });
 
-  const [, svgText] = await Promise.all([spreadsheetPromise, fetchMapSvg()]);
+  const [, , svgText] = await Promise.all([spreadsheetPromise, loadShopStatus(), fetchMapSvg()]);
   renderMap(svgText);
 }
 
