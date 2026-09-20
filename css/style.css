@@ -84,18 +84,23 @@ body {
   font-family: "Noto Sans JP", sans-serif;
   position: relative;
   isolation: isolate;
-  background: var(--page-bg) url("../img/background.jpeg") center / cover fixed no-repeat;
+  background: var(--page-bg);
   color: var(--text);
 }
 
-/* ページの背景画像だけをぼかし、前景のUIは鮮明に保つ。 */
+/* 背景画像を保持する専用の固定レイヤー。backdrop-filterは背後の見え方を常時再サンプリングするため、
+   前景側の再描画（地図のホバーやランキング欄のスクロールなど）につられて縁がチラつくことがある。
+   画像自体にfilter: blur()を直接かける方式にすると、レイヤーが静的に合成されチラつきが起きない。
+   inset: -16pxはぼかし半径ぶんの余白で、viewport端にぼかされていない縁が見えるのを防ぐ。 */
 body::before {
   position: fixed;
   inset: -16px;
   z-index: 0;
   content: "";
-  background: rgba(10, 12, 10, 0.18);
-  backdrop-filter: blur(8px);
+  background:
+    linear-gradient(rgba(10, 12, 10, 0.18), rgba(10, 12, 10, 0.18)),
+    url("../img/background.jpeg") center / cover no-repeat;
+  filter: blur(8px);
 }
 
 /* ページ全体の幅と下部余白。 */
