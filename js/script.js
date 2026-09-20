@@ -176,16 +176,18 @@ function renderSelectedVideo(data, isSelected = false) {
   const videoFrame = document.createElement('div');
   videoFrame.className = 'video-frame';
   const embedUrl = youtubeEmbedUrl(data?.videoUrl);
-  const thumbnailUrl = youtubeThumbnailUrl(data?.videoUrl);
-  if (thumbnailUrl) {
-    videoFrame.style.backgroundImage = `url("${thumbnailUrl}")`;
-  }
   if (!embedUrl) {
     const status = document.createElement('p');
     status.className = 'video-status';
     status.textContent = 'Coming soon...';
     videoFrame.appendChild(status);
   } else {
+    // プレイヤーの読み込み中・失敗時の代替表示として、まずサムネイルを背景に敷いておく。
+    const thumbnailUrl = youtubeThumbnailUrl(data?.videoUrl);
+    if (thumbnailUrl) {
+      videoFrame.style.backgroundImage = `url("${thumbnailUrl}")`;
+    }
+
     const iframe = document.createElement('iframe');
     iframe.src = embedUrl;
     iframe.title = '都道府県紹介動画';
@@ -195,6 +197,10 @@ function renderSelectedVideo(data, isSelected = false) {
     iframe.allowFullscreen = true;
     // src自体はyoutube.com/embed/配下に限定済みだが、多層防御としてsandboxで許可範囲を明示する。
     iframe.sandbox = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation';
+    // プレイヤーを表示できたらサムネイルは不要になるため取り除く。
+    iframe.addEventListener('load', () => {
+      videoFrame.style.backgroundImage = '';
+    });
     videoFrame.appendChild(iframe);
   }
   selectedVideo.appendChild(videoFrame);
