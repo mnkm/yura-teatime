@@ -255,16 +255,26 @@ h1 {
   fill: #b8bcc2 !important;
 }
 
-/* データがない都道府県も、ホバー時は操作対象として色を変える。 */
-.geolonia-svg-map .prefecture.no-data:hover,
+/* データがない都道府県も、キーボードフォーカス時は操作対象として色を変える。 */
 .geolonia-svg-map .prefecture.no-data:focus-visible {
   fill: #dfeaf8 !important;
 }
 
-/* マウスオーバー・キーボードフォーカス時の地図色。 */
-.geolonia-svg-map .prefecture:hover,
+/* キーボードフォーカス時の地図色。 */
 .geolonia-svg-map .prefecture:focus-visible {
   fill: #dfeaf8;
+}
+
+/* マウスオーバー時の地図色。タッチ操作の端末では選択後も:hoverが残り続けてしまうため、
+   実際にホバー操作ができる（マウス・トラックパッドなどの）端末でのみ適用する。 */
+@media (hover: hover) and (pointer: fine) {
+  .geolonia-svg-map .prefecture.no-data:hover {
+    fill: #dfeaf8 !important;
+  }
+
+  .geolonia-svg-map .prefecture:hover {
+    fill: #dfeaf8;
+  }
 }
 
 /* 選択中の都道府県の強調表示。 */
@@ -524,6 +534,46 @@ h1 {
   text-align: center;
 }
 
+/* 「地図に戻る」ボタンを内包する専用パネル。情報パネルとは別の部品とし、モバイル表示時のみ表示する。
+   固定表示ではなく通常のフローに置き、地図・情報パネルの直後、画面最下部までスクロールした先に現れるようにする。 */
+.back-to-map-panel {
+  display: none;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.back-to-map-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.back-to-map-button:hover {
+  border-color: #e2bd78;
+  background: rgba(42, 44, 40, 0.94);
+}
+
+.back-to-map-button:focus-visible {
+  outline: 2px solid #e2bd78;
+  outline-offset: 2px;
+}
+
+.back-to-map-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* 縦積み時、右パネルの高さ・スクロール指定を上書きしてランキング全体を展開表示する。
    .info-panel/.selected-detailsの同名プロパティより後方に置き、カスケードで確実に上書きする。 */
 @media (max-width: 660px) {
@@ -550,6 +600,10 @@ h1 {
   .info-panel .selected-details {
     flex: 0 0 auto;
     overflow-y: visible;
+  }
+
+  .back-to-map-panel {
+    display: flex;
   }
 }
 
