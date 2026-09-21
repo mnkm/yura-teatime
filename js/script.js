@@ -45,6 +45,8 @@ const mapSvgContainer = document.querySelector('#map-svg') || mapContainer;
 const selectedHeading = document.querySelector('#selected-heading');
 const selectedVideo = document.querySelector('#selected-video');
 const selectedDetails = document.querySelector('#selected-details');
+const backToMapButton = document.querySelector('#back-to-map-button');
+const mapPanel = document.querySelector('.map-panel');
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1TKqXbi7JbfVjlm7O1LxXh2Q-AA9V5sJN51b0eK_wCHg/export?format=xlsx';
 let prefectureData = new Map();
@@ -466,6 +468,11 @@ function hideSplashScreen() {
   splashScreen.classList.add('is-hidden');
   splashScreen.addEventListener('transitionend', () => splashScreen.remove(), { once: true });
 }
+
+// モバイル表示で情報パネルを読んだ後、地図まで手動でスクロールし直さなくて済むようにする。
+backToMapButton?.addEventListener('click', () => {
+  mapPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 // 地図の読み込みに失敗した場合、タイトルロゴを保持したままエラーメッセージを添える。
 function showMapError(message) {
