@@ -20,6 +20,14 @@
     </div>
 
     <div class="page">
+      <div class="mode-bar">
+        <label class="mode-toggle">
+          <input type="checkbox" id="lottery-mode-toggle" />
+          <span class="mode-toggle-track" aria-hidden="true"></span>
+          <span class="mode-toggle-label">抽選モード</span>
+        </label>
+      </div>
+
       <main class="content">
         <section class="map-panel" aria-label="地図">
           <div id="map">
@@ -41,6 +49,10 @@
         </aside>
       </main>
 
+      <div id="lottery-panel" class="lottery-panel">
+        <button type="button" id="lottery-button" class="lottery-button">抽選</button>
+      </div>
+
       <div id="back-to-map-panel" class="back-to-map-panel">
         <button type="button" id="back-to-map-button" class="back-to-map-button">
           <img class="back-to-map-icon" src="img/back-to-map.svg" alt="" aria-hidden="true" />
@@ -55,6 +67,14 @@
             Map SVG: <a href="https://github.com/geolonia/japanese-prefectures" target="_blank" rel="noopener noreferrer">Geolonia Japanese Prefectures</a>
         </small>
       </footer>
+    </div>
+
+    <div id="lottery-result-modal" class="modal" hidden>
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="lottery-result-heading">
+        <h2 id="lottery-result-heading">抽選結果</h2>
+        <p id="lottery-result-name" class="lottery-result-name"></p>
+        <button type="button" id="lottery-result-close" class="modal-close-button">閉じる</button>
+      </div>
     </div>
 
     <script
