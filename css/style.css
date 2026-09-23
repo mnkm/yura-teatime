@@ -103,13 +103,91 @@ body::before {
   filter: blur(8px);
 }
 
-/* ページ全体の幅と下部余白。 */
+/* ページ全体の幅と上下の余白。上部は画面上部に固定表示するモード切替バーの分を確保する。 */
 .page {
   width: 100%;
   position: relative;
   z-index: 1;
   margin: 0 auto;
-  padding: 30px 18px 88px;
+  padding: 70px 18px 88px;
+}
+
+/* 画面上部に固定表示するモード切替バー。 */
+.mode-bar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 18px;
+  background: rgba(24, 25, 22, 0.92);
+  border-bottom: 1px solid var(--panel-border);
+  backdrop-filter: blur(8px);
+}
+
+/* トグルスイッチ本体。inputは非表示にし、隣接するtrackで見た目を描画する。 */
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.mode-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mode-toggle-track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  transition: background-color 0.18s ease;
+}
+
+.mode-toggle-track::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 18px;
+  height: 18px;
+  background: var(--text);
+  border-radius: 50%;
+  transition: transform 0.18s ease;
+}
+
+.mode-toggle input:checked + .mode-toggle-track {
+  background: var(--selected);
+}
+
+.mode-toggle input:checked + .mode-toggle-track::before {
+  transform: translateX(18px);
+}
+
+.mode-toggle input:focus-visible + .mode-toggle-track {
+  outline: 2px solid #e2bd78;
+  outline-offset: 2px;
+}
+
+.mode-toggle-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 /* 画面下部に固定表示する出典・ライセンス情報。 */
@@ -176,6 +254,21 @@ h1 {
   grid-template-columns: minmax(320px, 6fr) minmax(280px, 4fr);
   gap: 22px;
   align-items: stretch;
+}
+
+/* 抽選モード中は動画・ランキング表示を隠し、地図パネルを全幅に拡大する。
+   .contentの列数はビューポート幅を問わず上書きするため、通常時の記述より高い詳細度にしている。 */
+.page.is-lottery-mode .content {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page.is-lottery-mode .info-panel {
+  display: none;
+}
+
+/* 抽選モードでは地図に戻る操作自体が不要（情報パネルが表示されないため）なので隠す。 */
+.page.is-lottery-mode .back-to-map-panel {
+  display: none;
 }
 
 /* 地図・情報パネルに共通するカード外観。 */
@@ -282,6 +375,18 @@ h1 {
   fill: var(--selected) !important;
   stroke: rgba(255, 255, 255, 0.9);
   stroke-width: 1.5;
+}
+
+/* 抽選アニメーション中にランダムで巡回表示する色。 */
+.geolonia-svg-map .prefecture.no-data.lottery-highlight {
+  fill: #f4b942 !important;
+}
+
+/* 抽選で確定した都道府県の強調表示。 */
+.geolonia-svg-map .prefecture.no-data.lottery-selected {
+  fill: #e2574c !important;
+  stroke: #ffffff;
+  stroke-width: 2.5;
 }
 
 /* SVG上に重ねる都道府県名ラベル。 */
@@ -574,6 +679,49 @@ h1 {
   height: 16px;
 }
 
+/* 抽選ボタンを内包する専用パネル。地図パネルの直後に配置し、抽選モード時のみ表示する。 */
+.lottery-panel {
+  display: none;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.page.is-lottery-mode .lottery-panel {
+  display: flex;
+}
+
+.lottery-button {
+  padding: 12px 40px;
+  background: var(--selected);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.12s ease, opacity 0.18s ease;
+}
+
+.lottery-button:hover:not(:disabled) {
+  border-color: #e2bd78;
+}
+
+.lottery-button:focus-visible {
+  outline: 2px solid #e2bd78;
+  outline-offset: 2px;
+}
+
+.lottery-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.lottery-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* 縦積み時、右パネルの高さ・スクロール指定を上書きしてランキング全体を展開表示する。
    .info-panel/.selected-detailsの同名プロパティより後方に置き、カスケードで確実に上書きする。 */
 @media (max-width: 660px) {
@@ -622,7 +770,8 @@ h1 {
   }
 
   .content {
-    height: calc(100vh - 210px);
+    /* 画面上部のモード切替バー分（約40px）を、モバイル用の基準値から追加で差し引く。 */
+    height: calc(100vh - 250px);
     align-items: center;
   }
 
@@ -636,4 +785,81 @@ h1 {
   .info-panel {
     align-self: center;
   }
+
+  /* 抽選モードでは地図パネルの幅が（情報パネル分）大きく変わる一方、高さはvw基準のままだったため、
+     コンテナ基準で幅が広がるタイトルロゴ（cqw単位）だけが肥大化し地図と重なっていた。
+     地図パネル自体の縦横比を1:1に固定し、抽選パネル分を差し引いた表示可能領域の中で
+     収まる最大サイズまで拡大したうえで、余った余白の中央に配置する。 */
+  .page.is-lottery-mode .content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* 通常時の予約領域（250px）に、抽選パネルの高さと余白ぶん（約70px）を追加で確保する。 */
+    height: calc(100vh - 320px);
+  }
+
+  .page.is-lottery-mode .map-panel {
+    width: min(100%, calc(100vh - 320px));
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-height: none;
+  }
+}
+
+/* 抽選結果を表示するモーダルウィンドウ。 */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 12, 10, 0.6);
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal-content {
+  width: min(360px, 100%);
+  padding: 28px 24px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.modal-content h2 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.lottery-result-name {
+  margin: 0 0 22px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #e2bd78;
+}
+
+.modal-close-button {
+  padding: 8px 28px;
+  background: var(--selected);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.18s ease;
+}
+
+.modal-close-button:hover,
+.modal-close-button:focus-visible {
+  border-color: #e2bd78;
+  outline: none;
 }

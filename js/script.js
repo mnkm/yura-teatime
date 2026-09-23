@@ -47,9 +47,25 @@ const selectedVideo = document.querySelector('#selected-video');
 const selectedDetails = document.querySelector('#selected-details');
 const backToMapButton = document.querySelector('#back-to-map-button');
 const mapPanel = document.querySelector('.map-panel');
+const pageElement = document.querySelector('.page');
+const lotteryModeToggle = document.querySelector('#lottery-mode-toggle');
+const lotteryButton = document.querySelector('#lottery-button');
+const lotteryModal = document.querySelector('#lottery-result-modal');
+const lotteryResultName = document.querySelector('#lottery-result-name');
+const lotteryModalCloseButton = document.querySelector('#lottery-result-close');
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1TKqXbi7JbfVjlm7O1LxXh2Q-AA9V5sJN51b0eK_wCHg/export?format=xlsx';
+// 抽選アニメーションの総時間と、開始・終了時点の切り替え間隔（進むほど間隔を伸ばし収束していく見た目にする）。
+const LOTTERY_DURATION_MS = 10000;
+const LOTTERY_START_INTERVAL_MS = 70;
+const LOTTERY_END_INTERVAL_MS = 450;
+// 結果確定後、モーダル表示の前に確定した都道府県を点滅させる回数と切り替え間隔。
+const LOTTERY_BLINK_TOGGLES = 8;
+const LOTTERY_BLINK_INTERVAL_MS = 180;
 let prefectureData = new Map();
+let noDataPrefectureElements = [];
+let isLotteryRunning = false;
+let lotteryRunToken = 0;
 
 // スプレッドシート由来の値を安全に文字列へ変換し、前後の空白を除去する。
 function cellText(value) {
@@ -439,8 +455,9 @@ function renderMap(svgText) {
     label.setAttribute('aria-hidden', 'true');
     prefecture.appendChild(label);
 
-    // クリックとキーボード操作で同じ選択処理を共有する。
+    // クリックとキーボード操作で同じ選択処理を共有する。抽選モード中は地図クリックによる選択自体を無効化する。
     const activate = () => {
+      if (pageElement?.classList.contains('is-lottery-mode')) return;
       prefectures.forEach((item) => item.classList.remove('is-selected'));
       prefecture.classList.add('is-selected');
       updateSelection(prefecture);
@@ -457,6 +474,10 @@ function renderMap(svgText) {
     });
   });
 
+  // 抽選の対象は、スプレッドシートにまだ紹介回がない都道府県のみ。
+  noDataPrefectureElements = Array.from(prefectures).filter((prefecture) => prefecture.classList.contains('no-data'));
+  if (lotteryButton) lotteryButton.disabled = noDataPrefectureElements.length === 0;
+
   selectedHeading.textContent = '';
   renderSelectedVideo(null);
   selectedDetails.replaceChildren();
@@ -472,6 +493,121 @@ function hideSplashScreen() {
 // モバイル表示で情報パネルを読んだ後、地図まで手動でスクロールし直さなくて済むようにする。
 backToMapButton?.addEventListener('click', () => {
   mapPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// 抽選対象からハイライトを取り除く。
+function clearLotteryHighlight() {
+  noDataPrefectureElements.forEach((prefecture) => {
+    prefecture.classList.remove('lottery-highlight', 'lottery-selected');
+  });
+}
+
+// 実行中の抽選アニメーションを打ち切り、ボタン・地図の状態を初期化する。
+function stopLottery() {
+  lotteryRunToken += 1;
+  isLotteryRunning = false;
+  if (lotteryButton) lotteryButton.disabled = noDataPrefectureElements.length === 0;
+  clearLotteryHighlight();
+}
+
+// 直前と同じ都道府県が連続で光らないよう、除外指定つきでランダムに1件選ぶ。
+function pickRandomPrefecture(exclude) {
+  if (noDataPrefectureElements.length <= 1) return noDataPrefectureElements[0];
+
+  let candidate;
+  do {
+    candidate = noDataPrefectureElements[Math.floor(Math.random() * noDataPrefectureElements.length)];
+  } while (candidate === exclude);
+  return candidate;
+}
+
+// 抽選結果をモーダルウィンドウへ表示する。
+function showLotteryResult(prefecture) {
+  if (lotteryResultName) lotteryResultName.textContent = prefecture.dataset.name || '';
+  if (lotteryModal) lotteryModal.hidden = false;
+  lotteryModalCloseButton?.focus();
+}
+
+// 結果が確定した都道府県を点滅表示してから、モーダルで結果を確定表示する。
+function blinkLotteryResult(prefecture, token, remaining = LOTTERY_BLINK_TOGGLES, isOn = true) {
+  // モード切替や再実行で無効化された古いループは、遅延タイマーが残っていても何もしない。
+  if (token !== lotteryRunToken) return;
+
+  prefecture.classList.toggle('lottery-selected', isOn);
+
+  if (remaining <= 0) {
+    prefecture.classList.add('lottery-selected');
+    showLotteryResult(prefecture);
+    isLotteryRunning = false;
+    if (lotteryButton) lotteryButton.disabled = false;
+    return;
+  }
+
+  setTimeout(() => blinkLotteryResult(prefecture, token, remaining - 1, !isOn), LOTTERY_BLINK_INTERVAL_MS);
+}
+
+// クリックのたびに切り替え間隔を徐々に伸ばしながら地図上をランダムに巡回させ、最後に結果を確定する。
+function runLottery() {
+  if (isLotteryRunning || noDataPrefectureElements.length === 0) return;
+
+  isLotteryRunning = true;
+  lotteryRunToken += 1;
+  const token = lotteryRunToken;
+  if (lotteryButton) lotteryButton.disabled = true;
+  clearLotteryHighlight();
+
+  const startTime = performance.now();
+  let previous = null;
+
+  const tick = () => {
+    // モード切替や再実行で無効化された古いループは、遅延タイマーが残っていても何もしない。
+    if (token !== lotteryRunToken) return;
+
+    const progress = Math.min((performance.now() - startTime) / LOTTERY_DURATION_MS, 1);
+    const eased = progress * progress;
+    const interval = LOTTERY_START_INTERVAL_MS + (LOTTERY_END_INTERVAL_MS - LOTTERY_START_INTERVAL_MS) * eased;
+
+    if (previous) previous.classList.remove('lottery-highlight');
+
+    if (progress >= 1) {
+      const winner = pickRandomPrefecture(previous);
+      blinkLotteryResult(winner, token);
+      return;
+    }
+
+    const candidate = pickRandomPrefecture(previous);
+    candidate.classList.add('lottery-highlight');
+    previous = candidate;
+    setTimeout(tick, interval);
+  };
+
+  tick();
+}
+
+// トグルスイッチで抽選モードの表示を切り替える。抽選モードを抜けるときは進行中の抽選も打ち切る。
+lotteryModeToggle?.addEventListener('change', () => {
+  pageElement?.classList.toggle('is-lottery-mode', lotteryModeToggle.checked);
+  if (!lotteryModeToggle.checked) {
+    stopLottery();
+    if (lotteryModal) lotteryModal.hidden = true;
+  }
+});
+
+lotteryButton?.addEventListener('click', runLottery);
+
+lotteryModalCloseButton?.addEventListener('click', () => {
+  if (lotteryModal) lotteryModal.hidden = true;
+});
+
+// 背景（オーバーレイ）自体のクリックでも閉じられるようにする。
+lotteryModal?.addEventListener('click', (event) => {
+  if (event.target === lotteryModal) lotteryModal.hidden = true;
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && lotteryModal && !lotteryModal.hidden) {
+    lotteryModal.hidden = true;
+  }
 });
 
 // 地図の読み込みに失敗した場合、タイトルロゴを保持したままエラーメッセージを添える。
