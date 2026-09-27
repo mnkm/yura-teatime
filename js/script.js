@@ -139,7 +139,7 @@ function safeHttpUrl(value) {
 
 // GitHub ActionsがCI上で定期的に検証し、HTTP 4xxが確認できたショップURLを記録した静的データ。
 // ブラウザからのfetchは多くの外部サイトでCORSにより検証できないため、事前チェック結果を利用する。
-const shopStatusUrl = 'data/shop-status.json';
+const shopStatusUrl = './data/shop-status.json';
 let brokenShopUrls = new Set();
 
 // 事前チェック結果を読み込む。取得できない場合は何も無効化せずフェイルオープンする。
@@ -394,7 +394,7 @@ function updateSelection(prefectureElement) {
 // 元データ: https://github.com/geolonia/japanese-prefectures （masterブランチを都度取得すると、
 // 上流の改変がそのままこのサイトのDOMに実行時反映されてしまうため、意図的にベンダリングしている）。
 async function fetchMapSvg() {
-  const svgUrl = 'img/map-polygon.svg';
+  const svgUrl = './img/map-polygon.svg';
   const response = await fetch(svgUrl);
 
   if (!response.ok) {
