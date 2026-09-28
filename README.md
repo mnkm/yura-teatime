@@ -2,7 +2,7 @@
 
 碓氷ゆらさんの配信企画「ゆらのゆるっとゆらっとTeaTime」（都道府県ごとにお菓子・お土産などを紹介する長期企画）を、日本地図から都道府県を選んで振り返れるファンメイドの特設サイトです。
 
-公開サイト: https://mnkm.github.io/yura-teatime/
+公開サイト: https://mnkm.page/yura-teatime/
 
 ## 概要
 
