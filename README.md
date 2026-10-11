@@ -8,7 +8,7 @@
 
 - 都道府県をクリック（またはキーボード操作）すると、その回の配信動画・配信日・紹介された商品ランキング・ショップリンクが右側パネルに表示されます
 - 商品情報や配信動画のURLは、公開されているGoogleスプレッドシートを都度読み込んで表示しています。スプレッドシート自体が一次情報源で、このリポジトリにデータそのものは含まれていません
-- 完全に静的なサイトで、サーバーサイドの実装は持ちません（GitHub Pagesでホスティング）
+- 完全に静的なサイトで、サーバーサイドの実装は持ちません（Cloudflare Pagesでホスティングし、Cloudflare Workers経由でカスタムドメインから配信）
 
 ## 主な機能
 
@@ -24,14 +24,19 @@
 - ビルドツールなしの素のHTML / CSS / JavaScript（`js/script.js` はモジュールを使わないクラシックスクリプト）
 - [SheetJS (xlsx)](https://sheetjs.com/) — 公開スプレッドシートのXLSXエクスポートをブラウザ上で直接パース（結合セルやハイパーリンク情報を保持するため、CSVではなくXLSXを解析しています）
 - 地図データは [Geolonia Japanese Prefectures](https://github.com/geolonia/japanese-prefectures) のSVGをリポジトリ内にベンダリング（`img/map-polygon.svg`）
-- GitHub Pages（静的ホスティング）+ GitHub Actions（ショップURLの定期チェック）
+- Cloudflare Pages（静的ホスティング）+ Cloudflare Workers（カスタムドメインへのプロキシ）+ GitHub Actions（ショップURLの定期チェック）
+- 旧URLのGitHub Pages（`https://mnkm.github.io/yura-teatime/`）は残していますが、ユーザーサイト管理用の別リポジトリ側の設定で、上記の公開サイトへリダイレクトしています
 
 ## ディレクトリ構成
 
 ```
 .
 ├── index.html                       # エントリーポイント
-├── css/style.css                    # スタイル一式
+├── _headers                         # Cloudflare Pagesが配信時に付与するHTTPヘッダー
+├── css/
+│   ├── style.css                    # スタイル一式
+│   └── fonts.css                    # Noto Sans JPの@font-face定義
+├── fonts/noto-sans-jp/              # Noto Sans JPのフォントファイル（分割済みwoff2）とライセンス文書
 ├── js/script.js                     # 地図描画・スプレッドシート解析・画面制御
 ├── img/
 │   ├── title-logo.svg               # タイトルロゴ（スプラッシュ・地図タイトルで使用）
@@ -40,7 +45,9 @@
 │   ├── background.jpeg
 │   └── map-polygon.svg              # ベンダリング済みの地図SVG
 ├── data/shop-status.json            # ショップURL疎通チェックの結果（CIが自動更新）
-├── scripts/check-shop-urls.mjs      # ショップURLを抽出・疎通確認するNode.jsスクリプト
+├── scripts/
+│   ├── check-shop-urls.mjs          # ショップURLを抽出・疎通確認するNode.jsスクリプト
+│   └── validate-shop-status.mjs     # 疎通確認の結果ファイルをコミット前に検証するスクリプト
 ├── .github/workflows/
 │   └── check-shop-urls.yml          # 上記スクリプトを定期実行するワークフロー
 └── package.json                     # 上記スクリプト用の依存関係（サイト本体のビルドには不使用）
@@ -69,17 +76,22 @@ npm install
 npm run check-shop-urls
 ```
 
-このスクリプトは、宛先がプライベート/ループバックアドレス（クラウドのメタデータエンドポイント含む）に解決される場合は疎通確認をスキップし、リダイレクトも遷移先ごとに再検証します。
+このスクリプトは、宛先がプライベート/ループバックなどの内部向けアドレス（クラウドのメタデータエンドポイント含む）に解決される場合は疎通確認をスキップし、リダイレクトも遷移先ごとに再検証します。名前解決の結果を検証したうえで、そのIPアドレスへ直接接続するため、検証後に解決先を差し替える手口（DNSリバインディング）でも内部向けの宛先には接続しません。1回の実行でチェックするURLの件数・長さ、全体の実行時間にも上限を設けています。
+
+ワークフローは2つのジョブに分かれています。スプレッドシートの解析と巡回を行うジョブにはリポジトリの読み取り権限だけを与え、結果を `scripts/validate-shop-status.mjs` で検証してからコミットするジョブにだけ書き込み権限を与えています。
 
 ## セキュリティ上の配慮
 
-- 外部（`raw.githubusercontent.com`）から都度取得していた地図SVGは、実行時の改変が閲覧者のブラウザでそのまま実行されてしまうリスクを避けるためリポジトリ内へベンダリングし、DOM挿入前に`<script>`やイベントハンドラ属性を除去するサニタイズを通しています
+- 外部（`raw.githubusercontent.com`）から都度取得していた地図SVGは、実行時の改変が閲覧者のブラウザでそのまま実行されてしまうリスクを避けるためリポジトリ内へベンダリングしています。DOM挿入前に`<script>`やイベントハンドラ属性などを取り除く処理も通していますが、これは地図SVG向けの簡易的なもので、信頼できない外部SVGを安全にするためのものではありません
 - CDNから読み込む外部スクリプト（xlsx）にはSubresource Integrity (SRI) を設定
+- 他サイトのフレーム内への埋め込みを禁止するヘッダー（`frame-ancestors 'none'` など）を `_headers` で付与（Cloudflare Pagesでの配信時のみ有効）
 - Content-Security-Policyにより、スクリプト・接続先・埋め込みフレームを必要最小限のオリジンに制限
-- スプレッドシート由来の値はすべて `textContent` で描画し、外部リンクは `http`/`https` のみ許可した上で検証
+- 閲覧者の情報が第三者へ送られる機会を減らすため、フォント（Noto Sans JP）はリポジトリ内に取り込んで自サイトから配信し、YouTubeの埋め込みには再生するまで追跡用Cookieを保存しない `youtube-nocookie.com` を使用
+- スプレッドシート由来の値はすべて `textContent` で描画し、外部リンクは `http`/`https` のみ許可した上で検証。動画欄のリンクはYouTubeの動画URLと判定できたものに限定（ショップリンクのリンク先ドメインは制限していないため、スプレッドシートの編集権限の管理が前提になります）
 
 ## クレジット
 
 - Create: [@o2i_5](https://x.com/o2i_5)
 - Data: [@Shigure_1764](https://x.com/Shigure_1764)
 - Map SVG: [Geolonia Japanese Prefectures](https://github.com/geolonia/japanese-prefectures)
+- Font: [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)（SIL Open Font License 1.1、`fonts/noto-sans-jp/OFL.txt`）

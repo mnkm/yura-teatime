@@ -109,7 +109,7 @@ function youtubeEmbedUrl(url) {
     const shortMatch = hostname === 'youtu.be' ? parsedUrl.pathname.match(/^\/([^/]+)/) : null;
     const videoId = liveMatch?.[1] || shortsMatch?.[1] || watchId || shortMatch?.[1];
     return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)
-      ? `https://www.youtube.com/embed/${videoId}?rel=0`
+      ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
       : '';
   } catch {
     return '';
@@ -213,7 +213,7 @@ function renderSelectedVideo(data, isSelected = false) {
     iframe.referrerPolicy = 'strict-origin-when-cross-origin';
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
     iframe.allowFullscreen = true;
-    // src自体はyoutube.com/embed/配下に限定済みだが、多層防御としてsandboxで許可範囲を明示する。
+    // src自体はyoutube-nocookie.com/embed/配下に限定済みだが、多層防御としてsandboxで許可範囲を明示する。
     iframe.sandbox = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation';
     // プレイヤーを表示できたらサムネイルは不要になるため取り除く。
     iframe.addEventListener('load', () => {
@@ -226,7 +226,8 @@ function renderSelectedVideo(data, isSelected = false) {
   if (title) {
     const caption = document.createElement('p');
     caption.className = 'video-title';
-    const videoLink = safeHttpUrl(data?.videoUrl);
+    // 動画欄のリンクは、YouTubeの動画URLと判定できたものだけに限る（任意サイトへの誘導に使わせない）。
+    const videoLink = embedUrl ? safeHttpUrl(data?.videoUrl) : '';
     if (videoLink) {
       const link = document.createElement('a');
       link.href = videoLink;
@@ -404,17 +405,23 @@ async function fetchMapSvg() {
   return response.text();
 }
 
-// 外部由来のSVGに<script>やイベントハンドラ属性が紛れ込んでいた場合に備え、挿入前に取り除く。
+// SVGに<script>やイベントハンドラ属性が紛れ込んでいた場合に備え、挿入前に取り除く。
 // DOMParserで解析したSVGはinnerHTML代入と異なりappendChildで挿入すると<script>が実行されるため、
 // ベンダリング済みで現状安全なファイルであっても多層防御として必ず通す。
+// 地図SVGが使わない要素・属性を落とすだけの簡易的なもので、信頼できない外部SVGを安全にする汎用の
+// サニタイザーではない。外部から取得する構成に戻す場合は専用ライブラリに置き換えること。
 function sanitizeSvgElement(root) {
-  root.querySelectorAll('script, foreignObject').forEach((node) => node.remove());
+  root.querySelectorAll('script, foreignObject, style, animate, animateMotion, animateTransform, set')
+    .forEach((node) => node.remove());
 
   // querySelectorAll('*')は起点ノード自身を含まないため、rootを明示的に含めて処理する。
   [root, ...root.querySelectorAll('*')].forEach((node) => {
     [...node.attributes].forEach((attr) => {
       const name = attr.name.toLowerCase();
-      if (name.startsWith('on') || (/^(?:xlink:href|href)$/.test(name) && /^\s*javascript:/i.test(attr.value))) {
+      // リンク先は同一文書内の参照（#id）だけを残し、スキームの表記ゆれによるすり抜けを防ぐ。
+      const isExternalReference = /^(?:xlink:href|href)$/.test(name) && !attr.value.trim().startsWith('#');
+      // style属性はCSPのstyle-srcでインラインスタイルとして拒否されるため、あらかじめ除いておく。
+      if (name.startsWith('on') || name === 'style' || isExternalReference) {
         node.removeAttribute(attr.name);
       }
     });

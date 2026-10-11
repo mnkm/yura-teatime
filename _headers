@@ -1,0 +1,9 @@
+# Cloudflare Pagesが配信時に付与するHTTPヘッダー。
+# frame-ancestorsは<meta>タグのCSPでは指定できないため、ここで指定する
+# （他サイトのフレーム内にこのサイトを埋め込ませない＝クリックジャッキング対策）。
+# index.htmlの<meta>で指定しているCSPと併用され、両方の制限がかかる。
+/*
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
