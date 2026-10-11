@@ -1,0 +1,15 @@
+# ワークフローで使うアクションの定期更新。npm の依存(xlsx)は URL から直接入れているため、Dependabot の対象にならない
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tokyo
+    # 更新は 1 本の PR にまとめる
+    groups:
+      actions:
+        patterns:
+          - "*"
