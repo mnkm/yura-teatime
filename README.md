@@ -93,5 +93,6 @@ npm run check-shop-urls
 
 - Create: [@o2i_5](https://x.com/o2i_5)
 - Data: [@Shigure_1764](https://x.com/Shigure_1764)
+- Icon: [MingCute Icons](https://github.com/mingcute-design/mingcute-icons)（Apache License 2.0、`THIRD_PARTY_NOTICES.md`）
 - Map SVG: [Geolonia Japanese Prefectures](https://github.com/geolonia/japanese-prefectures)
 - Font: [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)（SIL Open Font License 1.1、`fonts/noto-sans-jp/OFL.txt`）
