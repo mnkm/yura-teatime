@@ -1,0 +1,87 @@
+name: Check xlsx version
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # 毎週月曜 JST 9:00
+  workflow_dispatch:
+
+# 権限はジョブごとに必要な分だけ与える。
+permissions: {}
+
+jobs:
+  # xlsx (SheetJS) は npm レジストリではなく配布サイトから入れているため、Dependabot では追えない。
+  # 配布サイトの最新版と、このリポジトリで使っている版を比べ、違っていれば Issue で知らせる。
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Compare with the latest version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          version_pattern='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+          latest=$(curl -fsSL --max-time 30 https://cdn.sheetjs.com/xlsx-latest/package/package.json | jq -r '.version')
+          # 外部から取得した値なので、版番号の形をしていなければ使わない。
+          if [[ ! "$latest" =~ $version_pattern ]]; then
+            echo "::error::配布サイトから最新版の番号を取得できませんでした。"
+            exit 1
+          fi
+
+          # 点検スクリプト用（package.json）と、サイト本体用（index.html）の 2 か所で使っている。
+          package_version=$(jq -r '.devDependencies.xlsx // ""' package.json | sed -nE 's#^https://cdn\.sheetjs\.com/xlsx-([0-9.]+)/xlsx-[0-9.]+\.tgz$#\1#p')
+          html_version=$( (grep -oE 'cdn\.sheetjs\.com/xlsx-[0-9.]+/package/dist/xlsx\.full\.min\.js' index.html || true) | sed -E 's#.*/xlsx-([0-9.]+)/package/.*#\1#' | sort -u)
+
+          # 読み取れないときは、書き方が変わってこの点検が効かなくなっている。失敗させて気付けるようにする。
+          if [[ ! "$package_version" =~ $version_pattern || ! "$html_version" =~ $version_pattern ]]; then
+            echo "::error::使っている xlsx の版を読み取れませんでした（package.json: '$package_version' / index.html: '$html_version'）。"
+            exit 1
+          fi
+
+          echo "latest: $latest / package.json: $package_version / index.html: $html_version"
+
+          if [[ "$package_version" == "$latest" && "$html_version" == "$latest" ]]; then
+            echo "最新版を使っています。"
+            exit 0
+          fi
+
+          title="xlsx $latest が公開されています"
+          # 同じ版の Issue が開いている間は、重ねて作らない。
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq 'length')
+          if [[ "$existing" != "0" ]]; then
+            echo "Issue は作成済みです。"
+            exit 0
+          fi
+
+          gh issue create --title "$title" --body-file - <<EOF
+          @$OWNER xlsx (SheetJS) の新しい版が公開されています。脆弱性の修正が含まれることがあるので、変更内容を確認して更新してください。
+
+          | 場所 | 版 |
+          |---|---|
+          | 最新 | $latest |
+          | package.json（点検スクリプト） | $package_version |
+          | index.html（サイト本体） | $html_version |
+
+          変更内容: https://git.sheetjs.com/sheetjs/sheetjs/tags
+
+          ## 更新の手順
+
+          1. package.json の xlsx の URL を https://cdn.sheetjs.com/xlsx-$latest/xlsx-$latest.tgz に変え、npm install を実行する
+          2. index.html の script の src を https://cdn.sheetjs.com/xlsx-$latest/package/dist/xlsx.full.min.js に変える
+          3. 同じ script の integrity を、次のコマンドの出力（先頭に sha384- を付ける）に差し替える
+
+          ~~~sh
+          curl -fsSL https://cdn.sheetjs.com/xlsx-$latest/package/dist/xlsx.full.min.js | openssl dgst -sha384 -binary | openssl base64 -A
+          ~~~
+          EOF
