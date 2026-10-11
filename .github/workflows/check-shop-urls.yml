@@ -5,25 +5,58 @@ on:
     - cron: '0 18 * * *' # 毎日 JST 3:00
   workflow_dispatch:
 
-permissions:
-  contents: write
+# 権限はジョブごとに必要な分だけ与える。
+permissions: {}
 
 jobs:
+  # 外部のスプレッドシートを解析し、任意のURLへアクセスするジョブ。
+  # リポジトリへの書き込み権限は持たせず、結果はartifactとして次のジョブへ渡す。
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
 
-      - run: npm install
+      - run: npm ci --ignore-scripts
 
       - run: npm run check-shop-urls
 
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: shop-status
+          path: data/shop-status.json
+          if-no-files-found: error
+          retention-days: 1
+
+  # 巡回結果を検証したうえでコミットするジョブ。依存パッケージの取得や外部データの解析は行わない。
+  commit:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: shop-status
+          path: ${{ runner.temp }}/shop-status
+
+      - name: Validate shop status
+        run: node scripts/validate-shop-status.mjs "$RUNNER_TEMP/shop-status/shop-status.json"
+
       - name: Commit updated shop status
         run: |
+          cp "$RUNNER_TEMP/shop-status/shop-status.json" data/shop-status.json
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/shop-status.json

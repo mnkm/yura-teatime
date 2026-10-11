@@ -201,7 +201,7 @@
 					c0-4.4-3.6-8-8-8H783.9z"/>
 			</g>
 		</g>
-		<g class="boundary-line" stroke="#EEEEEE" stroke-width="12" stroke-linejoin="round" style="">
+		<g class="boundary-line" stroke="#EEEEEE" stroke-width="12" stroke-linejoin="round">
 			<path d="M216.1,593.3H89.3c-1.1,0-2-0.9-2-2s0.9-2,2-2h126.9c4.4,0,8-3.6,8-8V454.4c0-1.1,0.9-2,2-2s2,0.9,2,2v126.9
 				C228.2,587.9,222.8,593.3,216.1,593.3z"/>
 		</g>

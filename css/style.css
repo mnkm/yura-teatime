@@ -13,30 +13,6 @@
   box-sizing: border-box;
 }
 
-/* ページ全体へ適用するGoogle Fontsの可変フォント設定。 */
-.noto-sans-jp {
-  font-family: "Noto Sans JP", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-}
-
-/* 将来の個別指定で利用できるZen Kurenaidoのフォント設定。 */
-.zen-kurenaido-regular {
-  font-family: "Zen Kurenaido", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-/* 将来の個別指定で利用できるLeague Scriptのフォント設定。 */
-.league-script-regular {
-  font-family: "League Script", cursive;
-  font-weight: 500;
-  font-style: normal;
-  -webkit-text-stroke: 0.35px currentColor;
-  text-shadow: 0.35px 0 currentColor, -0.35px 0 currentColor;
-}
-
 /* 背景画像レイヤーを表示するため、ルート要素の背景を透明にする。 */
 html {
   background: transparent;
