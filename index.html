@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ゆらのゆるっとゆらっとTeaTime</title>
     <meta
+      name="description"
+      content="PROJECT NEBULA（ぷろねぶ）所属のVTuber 碓氷ゆら考案企画「ゆらのゆるっとゆらっとTeaTime」特設サイト"
+    />
+    <link rel="canonical" href="https://mnkm.page/yura-teatime/" />
+    <!-- 構造化データ（検索エンジン向けのサイト情報。実行されないデータなのでCSPの対象外） -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "ゆらのゆるっとゆらっとTeaTime",
+        "url": "https://mnkm.page/yura-teatime/",
+        "inLanguage": "ja",
+        "description": "PROJECT NEBULA（ぷろねぶ）所属のVTuber 碓氷ゆら考案企画「ゆらのゆるっとゆらっとTeaTime」特設サイト",
+        "about": [
+          { "@type": "Person", "name": "碓氷ゆら" },
+          { "@type": "Organization", "name": "PROJECT NEBULA", "alternateName": "ぷろねぶ" }
+        ]
+      }
+    </script>
+    <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' https://cdn.sheetjs.com https://static.cloudflareinsights.com;style-src 'self'; font-src 'self'; img-src 'self' https://i.ytimg.com; connect-src 'self' https://docs.google.com https://*.googleusercontent.com https://cloudflareinsights.com;frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none';"
     />
@@ -19,6 +39,12 @@
 
     <div class="page">
       <div class="mode-bar">
+        <details class="site-about">
+          <summary aria-label="このサイトについて">
+            <img src="./img/information.svg" alt="" />
+          </summary>
+          <p>PROJECT NEBULA（ぷろねぶ）所属のVTuber 碓氷ゆら考案企画「ゆらのゆるっとゆらっとTeaTime」の特設サイトです。</p>
+        </details>
         <label class="mode-toggle">
           <input type="checkbox" id="lottery-mode-toggle" />
           <span class="mode-toggle-track" aria-hidden="true"></span>
@@ -30,8 +56,8 @@
         <section class="map-panel" aria-label="地図">
           <div id="map">
             <div id="map-svg">
-              <h1 class="page-title" aria-label="ゆらのゆるっとゆらっとTeaTime">
-                <img class="title-logo" src="./img/title-logo.svg" alt="" aria-hidden="true" />
+              <h1 class="page-title">
+                <img class="title-logo" src="./img/title-logo.svg" alt="ゆらのゆるっとゆらっとTeaTime" />
               </h1>
             </div>
           </div>
@@ -43,8 +69,7 @@
             <div id="selected-video" class="selected-video" aria-label="配信"></div>
           </div>
           <div id="selected-details" class="selected-details" aria-live="polite">
-          </div>
-        </aside>
+          </div>        </aside>
       </main>
 
       <div id="lottery-panel" class="lottery-panel">

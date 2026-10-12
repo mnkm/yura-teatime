@@ -42,6 +42,7 @@
 │   ├── title-logo.svg               # タイトルロゴ（スプラッシュ・地図タイトルで使用）
 │   ├── favicon.svg
 │   ├── back-to-map.svg              # 「地図に戻る」ボタンのアイコン
+│   ├── information.svg              # サイトの説明を開くボタンのアイコン
 │   ├── background.jpeg
 │   └── map-polygon.svg              # ベンダリング済みの地図SVG
 ├── data/shop-status.json            # ショップURL疎通チェックの結果（CIが自動更新）
