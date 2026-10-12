@@ -104,6 +104,51 @@ body::before {
   backdrop-filter: blur(8px);
 }
 
+/* モード切替バー左端の、サイトの説明を開閉するボタン。説明文はバーの下に重ねて表示し、レイアウトには影響させない。 */
+.site-about {
+  position: relative;
+  margin-right: auto;
+}
+
+.site-about summary {
+  display: block;
+  width: 22px;
+  height: 22px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.site-about summary::-webkit-details-marker {
+  display: none;
+}
+
+.site-about summary img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.site-about summary:focus-visible {
+  outline: 2px solid #e2bd78;
+  outline-offset: 2px;
+}
+
+.site-about p {
+  position: absolute;
+  top: calc(100% + 18px);
+  left: 0;
+  width: min(320px, calc(100vw - 36px));
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(24, 25, 22, 0.96);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
 /* トグルスイッチ本体。inputは非表示にし、隣接するtrackで見た目を描画する。 */
 .mode-toggle {
   display: inline-flex;

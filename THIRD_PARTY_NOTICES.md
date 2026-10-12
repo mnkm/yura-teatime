@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | `img/favicon.svg` | favicon（`teacup_line`） |  |
 | `img/back-to-map.svg` | 「地図に戻る」ボタン（`arrow_to_up_line`） |  |
+| `img/information.svg` | サイトの説明を開くボタン（`information_line`） | 色を `#e2bd78` に変更 |
 
 ## Apache License 2.0
 
