@@ -267,6 +267,16 @@ async function checkUrl(url) {
   return 'unknown'; // リダイレクトが多すぎる場合は判定不能として扱う
 }
 
+// GitHub Actionsのランナーは、行の途中にある「##[」も旧形式のワークフローコマンドとして解釈する。
+// スプレッドシートは第三者も編集しうるため、URLをログへ出す前に、フラグメントの区切り以外の「#」を
+// %23 に置き換えて「#」を高々1つにし、偽の注釈やログのマスクなどのコマンドを実行させない。
+// 置き換えるのはログ表示だけで、判定や結果ファイルには元のURLを使う。
+function urlForLog(url) {
+  const fragmentIndex = url.indexOf('#');
+  if (fragmentIndex < 0) return url;
+  return url.slice(0, fragmentIndex + 1) + url.slice(fragmentIndex + 1).replaceAll('#', '%23');
+}
+
 async function main() {
   const shopUrls = [...(await extractShopUrls())].filter((url) => url.length <= MAX_URL_LENGTH);
   const urlsToCheck = shopUrls.slice(0, MAX_URLS_PER_RUN);
@@ -283,7 +293,7 @@ async function main() {
       break;
     }
     const result = await checkUrl(url);
-    console.log(`[${result}] ${url}`);
+    console.log(`[${result}] ${urlForLog(url)}`);
     if (result === 'broken') brokenUrls.push(url);
   }
 
