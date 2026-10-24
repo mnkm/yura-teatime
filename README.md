@@ -21,7 +21,7 @@
 
 ## 技術構成
 
-- ビルドツールなしの素のHTML / CSS / JavaScript（`js/script.js` はモジュールを使わないクラシックスクリプト）
+- ビルドツールなしの素のHTML / CSS / JavaScript（`js/sheet.js`・`js/script.js` はモジュールを使わないクラシックスクリプト）
 - [SheetJS (xlsx)](https://sheetjs.com/) — 公開スプレッドシートのXLSXエクスポートをブラウザ上で直接パース（結合セルやハイパーリンク情報を保持するため、CSVではなくXLSXを解析しています）
 - 地図データは [Geolonia Japanese Prefectures](https://github.com/geolonia/japanese-prefectures) のSVGをリポジトリ内にベンダリング（`img/map-polygon.svg`）
 - Cloudflare Pages（静的ホスティング）+ Cloudflare Workers（カスタムドメインへのプロキシ）+ GitHub Actions（ショップURLの定期チェック）
@@ -37,7 +37,9 @@
 │   ├── style.css                    # スタイル一式
 │   └── fonts.css                    # Noto Sans JPの@font-face定義
 ├── fonts/noto-sans-jp/              # Noto Sans JPのフォントファイル（分割済みwoff2）とライセンス文書
-├── js/script.js                     # 地図描画・スプレッドシート解析・画面制御
+├── js/
+│   ├── sheet.js                     # スプレッドシートの読み方（サイトとショップURLの疎通チェックで共通）
+│   └── script.js                    # 地図描画・画面制御
 ├── img/
 │   ├── title-logo.svg               # タイトルロゴ（スプラッシュ・地図タイトルで使用）
 │   ├── favicon.svg
@@ -48,7 +50,8 @@
 ├── data/shop-status.json            # ショップURL疎通チェックの結果（CIが自動更新）
 ├── scripts/
 │   ├── check-shop-urls.mjs          # ショップURLを抽出・疎通確認するNode.jsスクリプト
-│   └── validate-shop-status.mjs     # 疎通確認の結果ファイルをコミット前に検証するスクリプト
+│   ├── validate-shop-status.mjs     # 疎通確認の結果ファイルをコミット前に検証するスクリプト
+│   └── shop-status-limits.mjs       # 上記2つで共通の、URLの件数・長さの上限
 ├── .github/workflows/
 │   └── check-shop-urls.yml          # 上記スクリプトを定期実行するワークフロー
 └── package.json                     # 上記スクリプト用の依存関係（サイト本体のビルドには不使用）
@@ -68,7 +71,7 @@ python -m http.server 8000
 
 ## ショップURLの自動チェックについて
 
-`scripts/check-shop-urls.mjs` は、公開スプレッドシートから全ショップURLを抽出し、それぞれにGETリクエストを送ってHTTP 4xxが返るリンクを検出します。結果は `data/shop-status.json` に書き出され、サイトはこのファイルを読み込んでリンク切れのショップ情報を自動的に非表示にします（ブラウザから直接生存確認するとCORSの制約でほぼ判定できないため、CI側で検証する構成にしています）。
+`scripts/check-shop-urls.mjs` は、公開スプレッドシートから全ショップURLを、サイトと同じ読み方（`js/sheet.js`）で抽出し、それぞれにGETリクエストを送ってHTTP 4xxが返るリンクを検出します。結果は `data/shop-status.json` に書き出され、サイトはこのファイルを読み込んでリンク切れのショップ情報を自動的に非表示にします（ブラウザから直接生存確認するとCORSの制約でほぼ判定できないため、CI側で検証する構成にしています）。
 
 `.github/workflows/check-shop-urls.yml` が毎日 JST 3:00 に自動実行し、変更があれば結果をコミットします。手動で最新化したい場合は、GitHubの Actions タブから `Check shop URLs` を `workflow_dispatch` で実行するか、ローカルで以下を実行してください。
 
