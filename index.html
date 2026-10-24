@@ -68,8 +68,8 @@
           <div class="selected-box">
             <div id="selected-video" class="selected-video" aria-label="配信"></div>
           </div>
-          <div id="selected-details" class="selected-details" aria-live="polite">
-          </div>        </aside>
+          <div id="selected-details" class="selected-details" aria-live="polite"></div>
+        </aside>
       </main>
 
       <div id="lottery-panel" class="lottery-panel">
@@ -105,6 +105,8 @@
       integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"
       crossorigin="anonymous"
     ></script>
-    <script src="./js/script.js?v=splash-screen-1"></script>
+    <!-- スプレッドシートの読み方(ショップURLの疎通チェックと共通)。script.js より先に読み込む -->
+    <script src="./js/sheet.js?v=shared-sheet-1"></script>
+    <script src="./js/script.js?v=shared-sheet-1"></script>
   </body>
 </html>

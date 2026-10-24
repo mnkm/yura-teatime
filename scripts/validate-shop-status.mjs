@@ -2,13 +2,12 @@
 // 巡回ジョブは外部のスプレッドシートやサイトの応答を扱うため、その出力をそのまま信用せず、
 // 書き込み権限を持つコミットジョブ側で形式を確かめる。依存パッケージは使わない。
 //
-// 上限値は scripts/check-shop-urls.mjs の MAX_URLS_PER_RUN / MAX_URL_LENGTH と揃えること。
+// 件数と長さの上限は、巡回ジョブと同じもの(scripts/shop-status-limits.mjs)を使う。
 
 import { readFile } from 'node:fs/promises';
+import { MAX_URL_LENGTH, MAX_URLS_PER_RUN as MAX_URLS } from './shop-status-limits.mjs';
 
 const MAX_FILE_BYTES = 1024 * 1024;
-const MAX_URLS = 300;
-const MAX_URL_LENGTH = 2048;
 
 function validate(data) {
   if (data === null || typeof data !== 'object' || Array.isArray(data)) return 'トップレベルがオブジェクトではありません';
