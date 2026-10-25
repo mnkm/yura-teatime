@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+          # ランナーに入っている古いパッチ版で済ませず、毎回最新のパッチ版を使う（脆弱性の修正を待たずに取り込むため）。
+          check-latest: true
           # 外部データを扱うジョブなので、依存パッケージのキャッシュは使わない。
           package-manager-cache: false
 
